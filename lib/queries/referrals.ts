@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Referral, ReferralStatus } from "@/lib/types/domain";
+import { normalizeSupabaseError } from "@/lib/supabase/errors";
 
 const referralSelect = `
   id,
@@ -37,7 +38,7 @@ export async function listReferralsForAdvisor(
   }
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) throw normalizeSupabaseError(error);
   return (data ?? []) as Referral[];
 }
 
@@ -75,7 +76,7 @@ export async function createReferral(
     .select(referralSelect)
     .single();
 
-  if (error) throw error;
+  if (error) throw normalizeSupabaseError(error);
   return data as Referral;
 }
 
@@ -91,6 +92,59 @@ export async function updateReferralStatus(
     .select(referralSelect)
     .single();
 
-  if (error) throw error;
+  if (error) throw normalizeSupabaseError(error);
   return data as Referral;
+}
+
+export type DashboardReferralRow = Referral & {
+  referrer: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    referral_code: string | null;
+    referral_slug: string | null;
+  } | null;
+};
+
+export async function listDashboardReferrals(
+  supabase: SupabaseClient,
+  advisorId: string,
+) {
+  const { data: referralRows, error: referralsError } = await supabase
+    .from("referrals")
+    .select(referralSelect)
+    .eq("advisor_id", advisorId)
+    .order("created_at", { ascending: false });
+
+  if (referralsError) throw normalizeSupabaseError(referralsError);
+
+  const referrals = (referralRows ?? []) as Referral[];
+  if (referrals.length === 0) return [];
+
+  const referrerIds = Array.from(new Set(referrals.map((row) => row.referrer_id)));
+  const { data: referrerRows, error: referrersError } = await supabase
+    .from("referrers")
+    .select("id, first_name, last_name, referral_code, referral_slug")
+    .eq("advisor_id", advisorId)
+    .in("id", referrerIds);
+
+  if (referrersError) throw normalizeSupabaseError(referrersError);
+
+  const referrerMap = new Map(
+    (referrerRows ?? []).map((r) => [
+      r.id as string,
+      {
+        id: r.id as string,
+        first_name: r.first_name as string,
+        last_name: r.last_name as string,
+        referral_code: (r.referral_code as string | null) ?? null,
+        referral_slug: (r.referral_slug as string | null) ?? null,
+      },
+    ]),
+  );
+
+  return referrals.map((row) => ({
+    ...row,
+    referrer: referrerMap.get(row.referrer_id) ?? null,
+  }));
 }

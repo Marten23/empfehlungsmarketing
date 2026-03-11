@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
-import { findPublicReferrerByCodeOrSlug } from "@/lib/queries/referrers";
+import {
+  getPublicLinkContext,
+  type PublicLinkContext,
+} from "@/lib/queries/public-referral";
 import {
   type PublicReferralFormState,
   submitPublicReferral,
@@ -14,20 +17,19 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
   const { code } = await params;
   const supabase = await createClient();
 
-  let referrer: Awaited<ReturnType<typeof findPublicReferrerByCodeOrSlug>> =
-    null;
+  let context: PublicLinkContext | null = null;
   let lookupError: string | null = null;
 
   try {
-    referrer = await findPublicReferrerByCodeOrSlug(supabase, code);
+    context = await getPublicLinkContext(supabase, code);
   } catch {
     lookupError = "Der Empfehlungslink konnte aktuell nicht geladen werden.";
   }
 
   if (lookupError) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-100">
-        <h1 className="text-2xl font-semibold text-zinc-100">Empfehlungslink</h1>
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-900">
+        <h1 className="text-2xl font-semibold text-zinc-900">Empfehlungslink</h1>
         <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
           {lookupError}
         </p>
@@ -35,12 +37,12 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
     );
   }
 
-  if (!referrer || !referrer.advisor || !referrer.advisor.is_active) {
+  if (!context) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-100">
-        <h1 className="text-2xl font-semibold text-zinc-100">Empfehlungslink</h1>
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-900">
+        <h1 className="text-2xl font-semibold text-zinc-900">Empfehlungslink</h1>
         <p className="rounded bg-zinc-100 px-3 py-2 text-sm text-zinc-700">
-          Dieser Empfehlungslink ist ungueltig oder nicht mehr aktiv.
+          Dieser Empfehlungslink ist ungültig oder nicht mehr aktiv.
         </p>
       </main>
     );
@@ -53,17 +55,46 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
     error: null,
   };
 
+  if (context.link_type === "advisor") {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-900">
+        <header className="space-y-2">
+          <h1 className="text-2xl font-semibold text-zinc-900">
+            Einladung fuer Berater
+          </h1>
+          <p className="text-sm text-zinc-600">
+            Du wurdest von <span className="font-medium">{context.advisor_name}</span>{" "}
+            eingeladen.
+          </p>
+        </header>
+
+        <section className="rounded-lg border border-zinc-200 bg-white p-4 text-zinc-900 shadow-sm">
+          <p className="text-sm text-zinc-700">
+            In diesem Schritt kannst du dein Berater-Konto starten. Die
+            Zuordnung der Einladung ist bereits ueber den Link hinterlegt.
+          </p>
+          <a
+            href={`/signup?invite=${encodeURIComponent(code)}&invite_type=advisor`}
+            className="mt-4 inline-flex rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+          >
+            Als Berater registrieren
+          </a>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-100">
+    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-900">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold text-zinc-100">Empfehlung einreichen</h1>
-        <p className="text-sm text-zinc-300">
-          Berater: <span className="font-medium">{referrer.advisor.name}</span>
+        <h1 className="text-2xl font-semibold text-zinc-900">Empfehlung einreichen</h1>
+        <p className="text-sm text-zinc-600">
+          Berater: <span className="font-medium">{context.advisor_name}</span>
         </p>
-        <p className="text-sm text-zinc-300">
+        <p className="text-sm text-zinc-600">
           Empfohlen von:{" "}
           <span className="font-medium">
-            {referrer.first_name} {referrer.last_name}
+            {context.referrer_first_name} {context.referrer_last_name}
           </span>
         </p>
       </header>

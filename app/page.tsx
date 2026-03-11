@@ -1,80 +1,42 @@
-"use client";
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/auth";
 
-import { useEffect, useState } from "react";
-
-type ProbeResponse = {
-  ok: boolean;
-  status: "connected" | "missing_env" | "unreachable";
-  message: string;
-  details?: string;
-  checkedAt: string;
-};
-
-export default function Home() {
-  const [result, setResult] = useState<ProbeResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const runProbe = async () => {
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/supabase-probe", { cache: "no-store" });
-      const data = (await response.json()) as ProbeResponse;
-      setResult(data);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unbekannter Fehler";
-      setResult({
-        ok: false,
-        status: "unreachable",
-        message: "Probe konnte nicht ausgefuehrt werden.",
-        details: message,
-        checkedAt: new Date().toISOString(),
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void runProbe();
-  }, []);
+export default async function HomePage() {
+  const { user } = await getCurrentUser();
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center gap-6 p-6">
-      <h1 className="text-3xl font-semibold">Supabase Verbindungs-Probe</h1>
-      <p className="text-sm text-zinc-600">
-        Diese Seite testet, ob Supabase in diesem Projekt korrekt verbunden ist.
+    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center justify-center gap-6 p-6 text-center">
+      <h1 className="text-3xl font-semibold">Empfehlungsmarketing App</h1>
+      <p className="max-w-xl text-sm text-zinc-600">
+        MVP fuer Empfehlungsmarketing mit Berater-Dashboard, Referrer-Links und
+        Statusmanagement.
       </p>
 
-      <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-        {!result ? (
-          <p>Status wird geladen...</p>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {user ? (
+          <Link
+            href="/dashboard"
+            className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+          >
+            Zum Dashboard
+          </Link>
         ) : (
           <>
-            <p className="text-base">
-              <span className="font-semibold">Ergebnis: </span>
-              {result.ok ? "OK" : "Fehler"}
-            </p>
-            <p className="mt-2 text-sm">{result.message}</p>
-            {result.details ? (
-              <p className="mt-2 text-sm text-red-700">{result.details}</p>
-            ) : null}
-            <p className="mt-3 text-xs text-zinc-500">
-              Geprueft am: {new Date(result.checkedAt).toLocaleString("de-DE")}
-            </p>
+            <Link
+              href="/login"
+              className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+            >
+              Login
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900"
+            >
+              Signup
+            </Link>
           </>
         )}
       </div>
-
-      <button
-        type="button"
-        onClick={() => void runProbe()}
-        disabled={loading}
-        className="w-fit rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
-        {loading ? "Pruefe..." : "Probe neu starten"}
-      </button>
     </main>
   );
 }

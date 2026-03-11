@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import type { PublicReferralFormState } from "@/app/ref/[code]/actions";
 
@@ -52,8 +53,26 @@ export function ReferralForm({ action, initialState }: ReferralFormProps) {
           name="contact_note"
           rows={4}
           className="rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 placeholder:text-zinc-500"
-          placeholder="Ich freue mich ueber einen Rueckruf."
+          placeholder="Ich freue mich über einen Rückruf."
         />
+      </label>
+
+      <label className="flex items-start gap-2 text-xs text-zinc-700">
+        <input
+          type="checkbox"
+          name="privacy_accepted"
+          value="yes"
+          className="mt-0.5"
+          required
+        />
+        <span>
+          Ich habe die{" "}
+          <Link href="/datenschutz" className="underline" target="_blank">
+            Datenschutzhinweise
+          </Link>{" "}
+          gelesen und stimme der Verarbeitung meiner Angaben zur
+          Kontaktaufnahme zu.
+        </span>
       </label>
 
       {state.error ? (
