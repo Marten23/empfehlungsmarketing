@@ -96,3 +96,57 @@ export async function setPointsAwardModeAction(formData: FormData) {
 
   redirect("/berater/dashboard/advisors?points=1");
 }
+
+export async function setLevelThresholdsAction(formData: FormData) {
+  const advisorContext = await getCurrentAdvisorContext();
+  if (!advisorContext) return;
+
+  const bronzeRaw = String(formData.get("level_bronze_points") ?? "").trim();
+  const silverRaw = String(formData.get("level_silver_points") ?? "").trim();
+  const goldRaw = String(formData.get("level_gold_points") ?? "").trim();
+  const platinumRaw = String(formData.get("level_platinum_points") ?? "").trim();
+
+  const bronze = Number(bronzeRaw);
+  const silver = Number(silverRaw);
+  const gold = Number(goldRaw);
+  const platinum = Number(platinumRaw);
+
+  if (
+    !Number.isFinite(bronze) ||
+    !Number.isFinite(silver) ||
+    !Number.isFinite(gold) ||
+    !Number.isFinite(platinum) ||
+    bronze <= 0 ||
+    silver <= bronze ||
+    gold <= silver ||
+    platinum <= gold
+  ) {
+    redirect("/berater/dashboard/advisors?levels=0&reason=ungueltige-level-werte");
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.from("advisor_settings").upsert(
+      {
+        advisor_id: advisorContext.advisorId,
+        level_bronze_points: bronze,
+        level_silver_points: silver,
+        level_gold_points: gold,
+        level_platinum_points: platinum,
+      },
+      { onConflict: "advisor_id" },
+    );
+
+    if (error) throw error;
+
+    revalidatePath("/berater/dashboard/advisors");
+    revalidatePath("/empfehler/dashboard");
+  } catch (error) {
+    const message = normalizeSupabaseError(error).message;
+    redirect(
+      `/berater/dashboard/advisors?levels=0&reason=${encodeURIComponent(message)}`,
+    );
+  }
+
+  redirect("/berater/dashboard/advisors?levels=1");
+}

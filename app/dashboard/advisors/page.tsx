@@ -5,6 +5,7 @@ import { normalizeSupabaseError } from "@/lib/supabase/errors";
 import { getAdvisorActivationState } from "@/lib/queries/advisors";
 import {
   markOwnContractActivatedAction,
+  setLevelThresholdsAction,
   setPointsAwardModeAction,
   setReferrerActivationModeAction,
 } from "@/app/dashboard/advisors/actions";
@@ -21,6 +22,7 @@ type DashboardAdvisorsPageProps = {
     activated?: string;
     settings?: string;
     points?: string;
+    levels?: string;
     reason?: string;
   }>;
 };
@@ -53,6 +55,10 @@ export default async function DashboardAdvisorsPage({
   let autoActivateReferrers = false;
   let autoAwardPointsOnClose = true;
   let defaultPointsOnClose = 100;
+  let levelBronzePoints = 100;
+  let levelSilverPoints = 200;
+  let levelGoldPoints = 500;
+  let levelPlatinumPoints = 1000;
 
   try {
     const { data: advisorCodesRow, error: advisorCodesError } = await supabase
@@ -88,7 +94,7 @@ export default async function DashboardAdvisorsPage({
     const { data: settingsRow, error: settingsError } = await supabase
       .from("advisor_settings")
       .select(
-        "auto_activate_referrers, auto_award_points_on_referral_close, points_per_successful_referral",
+        "auto_activate_referrers, auto_award_points_on_referral_close, points_per_successful_referral, level_bronze_points, level_silver_points, level_gold_points, level_platinum_points",
       )
       .eq("advisor_id", advisorContext.advisorId)
       .maybeSingle();
@@ -114,6 +120,30 @@ export default async function DashboardAdvisorsPage({
             points_per_successful_referral?: number;
           } | null
         )?.points_per_successful_referral ?? 100;
+      levelBronzePoints =
+        (
+          settingsRow as {
+            level_bronze_points?: number;
+          } | null
+        )?.level_bronze_points ?? 100;
+      levelSilverPoints =
+        (
+          settingsRow as {
+            level_silver_points?: number;
+          } | null
+        )?.level_silver_points ?? 200;
+      levelGoldPoints =
+        (
+          settingsRow as {
+            level_gold_points?: number;
+          } | null
+        )?.level_gold_points ?? 500;
+      levelPlatinumPoints =
+        (
+          settingsRow as {
+            level_platinum_points?: number;
+          } | null
+        )?.level_platinum_points ?? 1000;
     }
 
     const { data: rows, error } = await supabase
@@ -246,6 +276,80 @@ export default async function DashboardAdvisorsPage({
               ? "Auf manuelle Punktevergabe umstellen"
               : "Auf automatische Punktevergabe umstellen"}
           </button>
+        </form>
+      </section>
+
+      <section className="rounded-lg border border-zinc-200 bg-white p-4">
+        <p className="text-sm font-medium text-zinc-900">Level-Schwellen fuer Empfehler</p>
+        <p className="mt-1 text-sm text-zinc-700">
+          Sie entscheiden individuell, ab welcher Punktzahl Bronze, Silber, Gold
+          und Platin erreicht werden.
+        </p>
+        <p className="mt-2 text-xs text-zinc-600">
+          Vor Bronze hat ein Empfehler keinen Titel.
+        </p>
+
+        {params.levels === "1" ? (
+          <p className="mt-2 rounded bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+            Level-Schwellen gespeichert.
+          </p>
+        ) : null}
+        {params.levels === "0" ? (
+          <p className="mt-2 rounded bg-red-50 px-3 py-2 text-xs text-red-700">
+            Level-Schwellen konnten nicht gespeichert werden.
+            {params.reason ? ` Grund: ${params.reason}` : ""}
+          </p>
+        ) : null}
+
+        <form action={setLevelThresholdsAction} className="mt-3 grid gap-3 sm:grid-cols-4">
+          <label className="flex flex-col gap-1 text-xs text-zinc-600">
+            Bronze ab
+            <input
+              type="number"
+              name="level_bronze_points"
+              min={1}
+              defaultValue={levelBronzePoints}
+              className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-zinc-600">
+            Silber ab
+            <input
+              type="number"
+              name="level_silver_points"
+              min={2}
+              defaultValue={levelSilverPoints}
+              className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-zinc-600">
+            Gold ab
+            <input
+              type="number"
+              name="level_gold_points"
+              min={2}
+              defaultValue={levelGoldPoints}
+              className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-zinc-600">
+            Platin ab
+            <input
+              type="number"
+              name="level_platinum_points"
+              min={3}
+              defaultValue={levelPlatinumPoints}
+              className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900"
+            />
+          </label>
+          <div className="sm:col-span-3">
+            <button
+              type="submit"
+              className="rounded border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900"
+            >
+              Level-Schwellen speichern
+            </button>
+          </div>
         </form>
       </section>
 
