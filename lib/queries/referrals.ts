@@ -42,6 +42,22 @@ export async function listReferralsForAdvisor(
   return (data ?? []) as Referral[];
 }
 
+export async function listReferralsForReferrer(
+  supabase: SupabaseClient,
+  advisorId: string,
+  referrerId: string,
+) {
+  const { data, error } = await supabase
+    .from("referrals")
+    .select(referralSelect)
+    .eq("advisor_id", advisorId)
+    .eq("referrer_id", referrerId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw normalizeSupabaseError(error);
+  return (data ?? []) as Referral[];
+}
+
 export async function createReferral(
   supabase: SupabaseClient,
   input: {
@@ -104,6 +120,7 @@ export type DashboardReferralRow = Referral & {
     referral_code: string | null;
     referral_slug: string | null;
   } | null;
+  awarded_points: number | null;
 };
 
 export async function listDashboardReferrals(
@@ -143,8 +160,28 @@ export async function listDashboardReferrals(
     ]),
   );
 
+  const referralIds = referrals.map((row) => row.id);
+  const { data: pointsRows, error: pointsError } = await supabase
+    .from("points_transactions")
+    .select("referral_id, points, created_at")
+    .eq("advisor_id", advisorId)
+    .eq("transaction_type", "earn_referral_close")
+    .in("referral_id", referralIds)
+    .order("created_at", { ascending: true });
+
+  if (pointsError) throw normalizeSupabaseError(pointsError);
+
+  const awardedMap = new Map<string, number>();
+  for (const row of pointsRows ?? []) {
+    const referralId = row.referral_id as string | null;
+    if (!referralId) continue;
+    if (awardedMap.has(referralId)) continue;
+    awardedMap.set(referralId, Number(row.points ?? 0));
+  }
+
   return referrals.map((row) => ({
     ...row,
     referrer: referrerMap.get(row.referrer_id) ?? null,
+    awarded_points: awardedMap.get(row.id) ?? null,
   }));
 }

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import {
   getPublicLinkContext,
   type PublicLinkContext,
@@ -16,6 +16,9 @@ type RefCodePageProps = {
 export default async function RefCodePage({ params }: RefCodePageProps) {
   const { code } = await params;
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   let context: PublicLinkContext | null = null;
   let lookupError: string | null = null;
@@ -56,11 +59,14 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
   };
 
   if (context.link_type === "advisor") {
+    const signupHref = `/signup?invite=${encodeURIComponent(code)}&invite_type=advisor`;
+    const switchAccountHref = `/auth/start-advisor-signup?invite=${encodeURIComponent(code)}&invite_type=advisor`;
+
     return (
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 p-6 text-zinc-900">
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold text-zinc-900">
-            Einladung fuer Berater
+            Einladung für Berater
           </h1>
           <p className="text-sm text-zinc-600">
             Du wurdest von <span className="font-medium">{context.advisor_name}</span>{" "}
@@ -71,14 +77,29 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
         <section className="rounded-lg border border-zinc-200 bg-white p-4 text-zinc-900 shadow-sm">
           <p className="text-sm text-zinc-700">
             In diesem Schritt kannst du dein Berater-Konto starten. Die
-            Zuordnung der Einladung ist bereits ueber den Link hinterlegt.
+            Zuordnung der Einladung ist bereits über den Link hinterlegt.
           </p>
-          <a
-            href={`/signup?invite=${encodeURIComponent(code)}&invite_type=advisor`}
-            className="mt-4 inline-flex rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            Als Berater registrieren
-          </a>
+          {user ? (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs text-zinc-600">
+                Du bist aktuell eingeloggt. Für eine neue Berater-Registrierung
+                wirst du zuerst abgemeldet.
+              </p>
+              <a
+                href={switchAccountHref}
+                className="inline-flex rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+              >
+                Abmelden und als Berater registrieren
+              </a>
+            </div>
+          ) : (
+            <a
+              href={signupHref}
+              className="mt-4 inline-flex rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+            >
+              Als Berater registrieren
+            </a>
+          )}
         </section>
       </main>
     );
@@ -108,3 +129,4 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
     </main>
   );
 }
+

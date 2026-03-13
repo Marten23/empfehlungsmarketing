@@ -53,22 +53,40 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isAuthPage = pathname === "/login" || pathname === "/signup";
-  const isDashboardRoute = pathname.startsWith("/dashboard");
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/berater/login" ||
+    pathname === "/empfehler/login";
 
-  if (!user && isDashboardRoute) {
+  const isAdvisorProtectedRoute =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/berater/dashboard");
+  const isReferrerProtectedRoute =
+    pathname.startsWith("/referrer") || pathname.startsWith("/empfehler/dashboard");
+  const isProtectedRoute = isAdvisorProtectedRoute || isReferrerProtectedRoute;
+
+  if (!user && isProtectedRoute) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
+    loginUrl.pathname = isReferrerProtectedRoute
+      ? "/empfehler/login"
+      : "/berater/login";
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   if (user && isAuthPage) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const role = (profile as { role?: string } | null)?.role ?? null;
     const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
+    dashboardUrl.pathname =
+      role === "referrer" ? "/empfehler/dashboard" : "/berater/dashboard";
     return NextResponse.redirect(dashboardUrl);
   }
 
   return response;
 }
-

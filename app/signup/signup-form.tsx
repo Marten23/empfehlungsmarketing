@@ -6,7 +6,15 @@ import type { AuthResult } from "@/lib/auth/types";
 
 const initialState: AuthResult = { error: null, message: null };
 
-export function SignupForm() {
+type SignupFormProps = {
+  defaultInviteCode?: string;
+  defaultInviteType?: string;
+};
+
+export function SignupForm({
+  defaultInviteCode = "",
+  defaultInviteType = "",
+}: SignupFormProps) {
   const [state, formAction, isPending] = useActionState(
     signupAction,
     initialState,
@@ -27,6 +35,26 @@ export function SignupForm() {
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
+        <span>Name (optional)</span>
+        <input
+          type="text"
+          name="full_name"
+          className="rounded border border-zinc-300 px-3 py-2"
+          placeholder="Max Mustermann"
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        <span>Telefon (optional)</span>
+        <input
+          type="tel"
+          name="phone"
+          className="rounded border border-zinc-300 px-3 py-2"
+          placeholder="+49..."
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
         <span>Passwort</span>
         <input
           type="password"
@@ -37,6 +65,21 @@ export function SignupForm() {
           placeholder="Mindestens 6 Zeichen"
         />
       </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        <span>Einladungs-Code (optional)</span>
+        <input
+          type="text"
+          name="invite_code"
+          defaultValue={defaultInviteCode}
+          className="rounded border border-zinc-300 px-3 py-2"
+          placeholder="z. B. a_ab12cd34ef"
+        />
+      </label>
+
+      {defaultInviteType ? (
+        <input type="hidden" name="invite_type" value={defaultInviteType} />
+      ) : null}
 
       {state.error ? (
         <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -55,9 +98,8 @@ export function SignupForm() {
         disabled={isPending}
         className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
-        {isPending ? "Registrierung laeuft..." : "Registrieren"}
+        {isPending ? "Registrierung läuft..." : "Registrieren"}
       </button>
     </form>
   );
 }
-

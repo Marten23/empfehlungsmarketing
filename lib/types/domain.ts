@@ -28,6 +28,7 @@ export type Referrer = {
   user_id: string | null;
   referral_code: string | null;
   referral_slug: string | null;
+  invite_code: string | null;
   first_name: string;
   last_name: string;
   email: string | null;

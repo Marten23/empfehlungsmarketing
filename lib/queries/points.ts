@@ -53,6 +53,8 @@ export async function createPointsTransaction(
     referrer_id: string;
     points: number;
     transaction_type: PointsTransactionType;
+    referral_id?: string | null;
+    reward_redemption_id?: string | null;
     description?: string | null;
     metadata?: Record<string, unknown>;
   },
@@ -68,6 +70,8 @@ export async function createPointsTransaction(
       referrer_id: input.referrer_id,
       points: input.points,
       transaction_type: input.transaction_type,
+      referral_id: input.referral_id ?? null,
+      reward_redemption_id: input.reward_redemption_id ?? null,
       description: input.description ?? null,
       metadata: input.metadata ?? {},
     })

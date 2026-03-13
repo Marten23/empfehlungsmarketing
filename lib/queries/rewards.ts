@@ -92,3 +92,31 @@ export async function updateRewardRedemptionStatus(
   if (error) throw error;
   return data as RewardRedemption;
 }
+
+export async function listRewardRedemptionsForReferrer(
+  supabase: SupabaseClient,
+  advisorId: string,
+  referrerId: string,
+) {
+  const { data, error } = await supabase
+    .from("reward_redemptions")
+    .select(redemptionSelect)
+    .eq("advisor_id", advisorId)
+    .eq("referrer_id", referrerId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as RewardRedemption[];
+}
+
+export async function redeemRewardAtomic(
+  supabase: SupabaseClient,
+  rewardId: string,
+) {
+  const { data, error } = await supabase.rpc("redeem_reward_atomic", {
+    p_reward_id: rewardId,
+  });
+
+  if (error) throw error;
+  return data as string | null;
+}

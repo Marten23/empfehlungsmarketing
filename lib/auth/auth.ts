@@ -1,8 +1,10 @@
-"use server";
+﻿"use server";
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { AppRole, AuthResult, CurrentUserResult } from "@/lib/auth/types";
+import { ensureAdvisorOnboardingForUser } from "@/lib/auth/onboarding";
+import { ensureReferrerOnboardingForUser } from "@/lib/auth/referrer";
 
 function isValidEmail(value: string) {
   return /\S+@\S+\.\S+/.test(value);
@@ -11,11 +13,48 @@ function isValidEmail(value: string) {
 function parseCredentials(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
-  return { email, password };
+  const inviteCode = String(formData.get("invite_code") ?? "").trim();
+  const inviteType = String(formData.get("invite_type") ?? "").trim();
+  const fullName = String(formData.get("full_name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+
+  return {
+    email,
+    password,
+    inviteCode: inviteCode.length > 0 ? inviteCode : null,
+    inviteType: inviteType.length > 0 ? inviteType : null,
+    fullName: fullName.length > 0 ? fullName : null,
+    phone: phone.length > 0 ? phone : null,
+  };
+}
+
+function normalizeRole(value: unknown): AppRole | null {
+  if (value === "advisor" || value === "referrer") {
+    return value;
+  }
+  return null;
+}
+
+async function getProfileRole() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  return normalizeRole((profile as { role?: unknown } | null)?.role);
 }
 
 export async function signup(formData: FormData): Promise<AuthResult> {
-  const { email, password } = parseCredentials(formData);
+  const { email, password, inviteCode, inviteType, fullName, phone } =
+    parseCredentials(formData);
 
   if (!isValidEmail(email)) {
     return { error: "Bitte eine gueltige E-Mail eingeben.", message: null };
@@ -25,26 +64,62 @@ export async function signup(formData: FormData): Promise<AuthResult> {
     return { error: "Passwort muss mindestens 6 Zeichen haben.", message: null };
   }
 
+  if (inviteType === "referrer" && !inviteCode) {
+    return {
+      error: "Empfehler-Einladungslink unvollstaendig (Code fehlt).",
+      message: null,
+    };
+  }
+
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const metadata: Record<string, string> = {};
+
+  if (inviteType === "advisor" && inviteCode) {
+    metadata.pending_advisor_invite = inviteCode;
+  }
+
+  if (inviteType === "referrer" && inviteCode) {
+    metadata.pending_referrer_invite = inviteCode;
+  }
+
+  if (fullName) metadata.full_name = fullName;
+  if (phone) metadata.phone = phone;
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: Object.keys(metadata).length > 0 ? metadata : undefined,
+    },
+  });
 
   if (error) {
     return { error: error.message, message: null };
   }
 
-  if (data.user) {
-    // Keep profile bootstrap minimal and idempotent.
-    await supabase.from("profiles").upsert({ user_id: data.user.id });
+  if (inviteType === "referrer") {
+    if (data.session && data.user) {
+      await ensureReferrerOnboardingForUser(supabase, data.user, {
+        inviteCodeFromInput: inviteCode,
+        fullNameFromInput: fullName,
+        phoneFromInput: phone,
+      });
+      await supabase.auth.signOut();
+      redirect("/empfehler/login?registered=1");
+    }
+
+    redirect("/empfehler/login?registered=1&check_email=1");
   }
 
-  if (data.session) {
-    redirect("/dashboard");
+  if (data.session && data.user) {
+    await ensureAdvisorOnboardingForUser(supabase, data.user, inviteCode);
+    redirect("/berater/dashboard");
   }
 
   return {
     error: null,
     message:
-      "Registrierung erfolgreich. Bitte bestaetige ggf. deine E-Mail und melde dich dann an.",
+      "Registrierung erfolgreich. Bitte bestätige ggf. deine E-Mail und melde dich dann an.",
   };
 }
 
@@ -66,20 +141,28 @@ export async function login(formData: FormData): Promise<AuthResult> {
     return { error: error.message, message: null };
   }
 
-  redirect("/dashboard");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    await ensureReferrerOnboardingForUser(supabase, user);
+    const roleAfterReferrerOnboarding = await getProfileRole();
+
+    if (roleAfterReferrerOnboarding === "referrer") {
+      redirect("/empfehler/dashboard");
+    }
+
+    await ensureAdvisorOnboardingForUser(supabase, user);
+  }
+
+  redirect("/berater/dashboard");
 }
 
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
-}
-
-function normalizeRole(value: unknown): AppRole | null {
-  if (value === "advisor" || value === "referrer") {
-    return value;
-  }
-  return null;
+  redirect("/berater/login");
 }
 
 export async function getCurrentUser(): Promise<CurrentUserResult> {
@@ -92,8 +175,6 @@ export async function getCurrentUser(): Promise<CurrentUserResult> {
     return { user: null, role: null };
   }
 
-  // Use a broad select so the function still works even if `profiles.role`
-  // has not yet been added in the DB.
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
@@ -110,4 +191,3 @@ export async function getCurrentUser(): Promise<CurrentUserResult> {
     role,
   };
 }
-
