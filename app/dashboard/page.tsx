@@ -114,6 +114,12 @@ export default async function DashboardPage() {
           Empfehlungen bearbeiten
         </Link>
         <Link
+          href="/berater/praemien"
+          className="rounded border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900"
+        >
+          Praemien verwalten
+        </Link>
+        <Link
           href="/berater/dashboard/referrers"
           className="rounded border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900"
         >

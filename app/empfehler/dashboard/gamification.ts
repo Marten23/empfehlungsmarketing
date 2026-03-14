@@ -2,7 +2,7 @@ import type { Reward, Referral, PointsTransaction } from "@/lib/types/domain";
 
 export type ReferrerLevel = {
   key: "none" | "bronze" | "silber" | "gold" | "platin";
-  label: "Kein Titel" | "Bronze" | "Silber" | "Gold" | "Platin";
+  label: "Empfehler" | "Bronze" | "Silber" | "Gold" | "Platin";
   minPoints: number;
 };
 
@@ -27,7 +27,7 @@ function getLevels(thresholds?: Partial<LevelThresholds>) {
   const platinum = thresholds?.platinum ?? defaultThresholds.platinum;
 
   return [
-    { key: "none", label: "Kein Titel", minPoints: 0 },
+    { key: "none", label: "Empfehler", minPoints: 0 },
     { key: "bronze", label: "Bronze", minPoints: bronze },
     { key: "silber", label: "Silber", minPoints: silver },
     { key: "gold", label: "Gold", minPoints: gold },
@@ -114,7 +114,7 @@ export function mapReferralStatusToUi(status: Referral["status"]) {
       return "eingereicht";
     case "kontaktiert":
     case "termin":
-      return "in Pruefung";
+      return "in Prüfung";
     case "abschluss":
       return "erfolgreich";
     case "abgelehnt":
@@ -136,7 +136,8 @@ export function getAwardedPointsByReferral(pointsRows: PointsTransaction[]) {
 }
 
 export function buildMotivationHints(params: {
-  pointsBalance: number;
+  availablePoints: number;
+  lifetimeLevelPoints: number;
   successfulReferralsCount: number;
   pointsToNextLevel: number;
   pointsToNextReward: number | null;
@@ -145,7 +146,7 @@ export function buildMotivationHints(params: {
 
   if (params.pointsToNextReward !== null && params.pointsToNextReward > 0) {
     hints.push(
-      `Du bist nur noch ${params.pointsToNextReward} Punkte von deiner naechsten Belohnung entfernt.`,
+      `Du bist nur noch ${params.pointsToNextReward} Punkte von deiner nächsten Belohnung entfernt.`,
     );
   }
 
@@ -156,12 +157,12 @@ export function buildMotivationHints(params: {
   }
 
   if (params.pointsToNextLevel > 0) {
-    hints.push(`Noch ${params.pointsToNextLevel} Punkte bis zum naechsten Level.`);
+    hints.push(`Noch ${params.pointsToNextLevel} Punkte bis zum nächsten Level.`);
   } else {
-    hints.push("Top Leistung! Du hast bereits das hoechste Level erreicht.");
+    hints.push("Top Leistung! Du hast bereits das höchste Level erreicht.");
   }
 
-  if (hints.length === 0 && params.pointsBalance === 0) {
+  if (hints.length === 0 && params.availablePoints === 0 && params.lifetimeLevelPoints === 0) {
     hints.push(
       "Sobald eine Empfehlung erfolgreich abgeschlossen ist, siehst du hier deine ersten Fortschritte.",
     );

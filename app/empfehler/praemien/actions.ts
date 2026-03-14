@@ -8,16 +8,21 @@ import { normalizeSupabaseError } from "@/lib/supabase/errors";
 
 export async function redeemRewardAction(formData: FormData) {
   const rewardId = String(formData.get("reward_id") ?? "").trim();
-  if (!rewardId) return;
+  if (!rewardId) {
+    redirect("/empfehler/praemien?redeemed=0&reason=ungueltige-praemie");
+  }
+
+  let redirectUrl = "/empfehler/praemien?redeemed=1";
 
   try {
     const supabase = await createClient();
     await redeemRewardAtomic(supabase, rewardId);
     revalidatePath("/empfehler/dashboard");
     revalidatePath("/empfehler/praemien");
-    redirect("/empfehler/praemien?redeemed=1");
   } catch (error) {
     const message = normalizeSupabaseError(error).message;
-    redirect(`/empfehler/praemien?redeemed=0&reason=${encodeURIComponent(message)}`);
+    redirectUrl = `/empfehler/praemien?redeemed=0&reason=${encodeURIComponent(message)}`;
   }
+
+  redirect(redirectUrl);
 }

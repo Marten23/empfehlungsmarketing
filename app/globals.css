@@ -17,3 +17,66 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+
+@keyframes hexPulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(159, 124, 255, 0));
+  }
+  50% {
+    opacity: 0.52;
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 12px rgba(159, 124, 255, 0.3));
+  }
+}
+
+@keyframes hexDrift {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes hexGlow {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.hex-node {
+  clip-path: polygon(
+    25% 6.7%,
+    75% 6.7%,
+    100% 50%,
+    75% 93.3%,
+    25% 93.3%,
+    0% 50%
+  );
+}
+
+.hex-pulse {
+  animation: hexPulse 7s ease-in-out infinite;
+}
+
+.hex-drift {
+  animation: hexDrift 10s ease-in-out infinite;
+}
+
+.hex-glow {
+  animation: hexGlow 9s ease-in-out infinite;
+}
+
+.hex-honeycomb-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='72' viewBox='0 0 84 72'%3E%3Cg fill='none' stroke='rgba(159,124,255,0.22)' stroke-width='1.2'%3E%3Cpath d='M21 3.5 L42 15.5 L42 39.5 L21 51.5 L0 39.5 L0 15.5 Z'/%3E%3Cpath d='M63 3.5 L84 15.5 L84 39.5 L63 51.5 L42 39.5 L42 15.5 Z'/%3E%3Cpath d='M42 39.5 L63 51.5 L63 75.5 L42 87.5 L21 75.5 L21 51.5 Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 126px 108px;
+  background-repeat: repeat;
+}

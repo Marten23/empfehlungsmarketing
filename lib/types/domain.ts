@@ -65,7 +65,14 @@ export type Reward = {
   title: string;
   name: string | null;
   description: string | null;
+  motivation_text: string | null;
   image_url: string | null;
+  image_source_note: string | null;
+  image_rights_confirmed: boolean;
+  image_rights_confirmed_at: string | null;
+  image_rights_confirmed_by_user_id: string | null;
+  image_focus_x: number;
+  image_focus_y: number;
   external_product_url: string | null;
   points_cost: number;
   is_active: boolean;

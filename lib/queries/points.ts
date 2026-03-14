@@ -43,7 +43,24 @@ export async function getPointsBalanceForReferrer(
     .eq("referrer_id", referrerId);
 
   if (error) throw error;
-  return (data ?? []).reduce((sum, row) => sum + Number(row.points ?? 0), 0);
+  return sumAvailablePoints((data ?? []) as Pick<PointsTransaction, "points">[]);
+}
+
+export function sumAvailablePoints(
+  rows: Array<Pick<PointsTransaction, "points">>,
+) {
+  return rows.reduce((sum, row) => sum + Number(row.points ?? 0), 0);
+}
+
+export function sumLifetimeLevelPoints(
+  rows: Array<Pick<PointsTransaction, "points" | "transaction_type">>,
+) {
+  return rows.reduce((sum, row) => {
+    const points = Number(row.points ?? 0);
+    if (points <= 0) return sum;
+    if (row.transaction_type !== "earn_referral_close") return sum;
+    return sum + points;
+  }, 0);
 }
 
 export async function createPointsTransaction(

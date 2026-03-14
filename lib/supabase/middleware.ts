@@ -48,9 +48,16 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: { id: string } | null = null;
+  let authFetchFailed = false;
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser ? { id: authUser.id } : null;
+  } catch {
+    authFetchFailed = true;
+  }
 
   const pathname = request.nextUrl.pathname;
   const isAuthPage =
@@ -65,7 +72,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/referrer") || pathname.startsWith("/empfehler/dashboard");
   const isProtectedRoute = isAdvisorProtectedRoute || isReferrerProtectedRoute;
 
-  if (!user && isProtectedRoute) {
+  if (!authFetchFailed && !user && isProtectedRoute) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = isReferrerProtectedRoute
       ? "/empfehler/login"
@@ -74,18 +81,23 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && isAuthPage) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("user_id", user.id)
-      .maybeSingle();
+  if (!authFetchFailed && user && isAuthPage) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-    const role = (profile as { role?: string } | null)?.role ?? null;
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname =
-      role === "referrer" ? "/empfehler/dashboard" : "/berater/dashboard";
-    return NextResponse.redirect(dashboardUrl);
+      const role = (profile as { role?: string } | null)?.role ?? null;
+      const dashboardUrl = request.nextUrl.clone();
+      dashboardUrl.pathname =
+        role === "referrer" ? "/empfehler/dashboard" : "/berater/dashboard";
+      return NextResponse.redirect(dashboardUrl);
+    } catch {
+      // Bei temporären Netzwerkproblemen nicht abstürzen,
+      // sondern Seite normal ausliefern.
+    }
   }
 
   return response;

@@ -8,10 +8,10 @@ import {
   listRewardRedemptionsForReferrer,
 } from "@/lib/queries/rewards";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
-import { redeemRewardAction } from "@/app/empfehler/praemien/actions";
+import { RedeemForm } from "@/app/empfehler/praemien/redeem-form";
 
 type ReferrerRewardsPageProps = {
-  searchParams: Promise<{ redeemed?: string; reason?: string }>;
+  searchParams: Promise<{ redeemed?: string; reason?: string; sort?: string }>;
 };
 
 export default async function ReferrerRewardsPage({
@@ -47,6 +47,13 @@ export default async function ReferrerRewardsPage({
     loadError = normalizeSupabaseError(error).message;
   }
 
+  const sort = params.sort === "desc" ? "desc" : "asc";
+  const sortedRewards = [...rewards].sort((a, b) => {
+    const byPoints = a.points_cost - b.points_cost;
+    if (byPoints !== 0) return sort === "asc" ? byPoints : -byPoints;
+    return (a.created_at ?? "").localeCompare(b.created_at ?? "");
+  });
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 p-6">
       <header className="space-y-2">
@@ -60,7 +67,7 @@ export default async function ReferrerRewardsPage({
       </header>
 
       <section className="rounded-lg border border-zinc-200 bg-white p-4">
-        <p className="text-xs text-zinc-500">Aktueller Punktestand</p>
+        <p className="text-xs text-zinc-500">Verfuegbare Punkte</p>
         <p className="mt-1 text-3xl font-semibold text-zinc-900">{balance}</p>
       </section>
 
@@ -80,13 +87,30 @@ export default async function ReferrerRewardsPage({
         </p>
       ) : null}
 
+      <section className="rounded-lg border border-zinc-200 bg-white p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-zinc-700">
+            Sortierung nach Punktewert:{" "}
+            <span className="font-medium text-zinc-900">
+              {sort === "asc" ? "aufsteigend" : "absteigend"}
+            </span>
+          </p>
+          <Link
+            href={`/empfehler/praemien?sort=${sort === "asc" ? "desc" : "asc"}`}
+            className="rounded border border-zinc-300 px-3 py-1 text-sm text-zinc-800"
+          >
+            {sort === "asc" ? "Absteigend anzeigen" : "Aufsteigend anzeigen"}
+          </Link>
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2">
-        {rewards.length === 0 ? (
+        {sortedRewards.length === 0 ? (
           <article className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
             Aktuell sind keine aktiven Praemien verfuegbar.
           </article>
         ) : (
-          rewards.map((reward) => {
+          sortedRewards.map((reward) => {
             const canRedeem = balance >= reward.points_cost;
             return (
               <article
@@ -99,6 +123,9 @@ export default async function ReferrerRewardsPage({
                     src={reward.image_url}
                     alt={reward.title || reward.name || "Praemie"}
                     className="mb-3 h-40 w-full rounded object-cover"
+                    style={{
+                      objectPosition: `${reward.image_focus_x ?? 50}% ${reward.image_focus_y ?? 50}%`,
+                    }}
                   />
                 ) : null}
                 <h2 className="text-lg font-semibold text-zinc-900">
@@ -106,6 +133,11 @@ export default async function ReferrerRewardsPage({
                 </h2>
                 {reward.description ? (
                   <p className="mt-2 text-sm text-zinc-600">{reward.description}</p>
+                ) : null}
+                {reward.motivation_text ? (
+                  <p className="mt-2 rounded bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
+                    {reward.motivation_text}
+                  </p>
                 ) : null}
                 <p className="mt-3 text-sm font-medium text-zinc-900">
                   Punktewert: {reward.points_cost}
@@ -117,24 +149,20 @@ export default async function ReferrerRewardsPage({
                     rel="noreferrer"
                     className="mt-2 inline-flex text-sm text-zinc-800 underline"
                   >
-                    Externer Produktlink
+                    Details ansehen
                   </a>
                 ) : null}
 
                 <div className="mt-4">
-                  <form action={redeemRewardAction}>
-                    <input type="hidden" name="reward_id" value={reward.id} />
-                    <button
-                      type="submit"
-                      disabled={!canRedeem}
-                      className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      Einloesen
-                    </button>
-                  </form>
+                  <RedeemForm
+                    rewardId={reward.id}
+                    rewardTitle={reward.title || reward.name || "Praemie"}
+                    pointsCost={reward.points_cost}
+                    canRedeem={canRedeem}
+                  />
                   {!canRedeem ? (
                     <p className="mt-2 text-xs text-red-600">
-                      Nicht genug Punkte fuer diese Praemie.
+                      Noch {Math.max(0, reward.points_cost - balance)} Punkte fehlen.
                     </p>
                   ) : null}
                 </div>
