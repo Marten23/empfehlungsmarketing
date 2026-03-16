@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import type { Reward } from "@/lib/types/domain";
 import { ArrowUpRightIcon, GiftIcon, SparklesIcon } from "@/app/empfehler/dashboard/components/icons";
 
@@ -11,17 +11,17 @@ export function RewardsPreview({ rewards, pointsBalance }: RewardsPreviewProps) 
   const preview = rewards.slice(0, 3);
 
   return (
-    <section className="rounded-2xl bg-gradient-to-br from-violet-300/9 via-violet-300/5 to-transparent p-4 ring-1 ring-violet-300/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+    <section className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-violet-50">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/35 bg-violet-300/12 text-violet-100">
+        <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
             <GiftIcon className="h-4 w-4" />
           </span>
           Prämien-Vorschau
         </h2>
         <Link
           href="/empfehler/praemien"
-          className="group inline-flex items-center gap-2 text-sm font-medium text-violet-200 underline decoration-violet-300/50 underline-offset-4 transition-all duration-300 hover:text-violet-100 hover:decoration-violet-200/80"
+          className="group inline-flex items-center gap-2 text-sm font-medium text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90 hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.25)]"
         >
           Alle ansehen
           <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -29,7 +29,7 @@ export function RewardsPreview({ rewards, pointsBalance }: RewardsPreviewProps) 
       </div>
 
       {preview.length === 0 ? (
-        <p className="mt-3 text-sm text-violet-100/80">
+        <p className="mt-3 text-sm text-zinc-600">
           Ihr Berater hat aktuell noch keine aktiven Belohnungen hinterlegt.
         </p>
       ) : (
@@ -40,20 +40,19 @@ export function RewardsPreview({ rewards, pointsBalance }: RewardsPreviewProps) 
             return (
               <article
                 key={reward.id}
-                className="group relative overflow-hidden rounded-xl bg-violet-400/8 p-3 ring-1 ring-violet-300/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:brightness-[1.1] hover:ring-violet-200/45 hover:shadow-[0_18px_40px_rgba(26,16,40,0.45),0_0_0_1px_rgba(159,124,255,0.2)]"
+                className="group relative overflow-hidden rounded-xl bg-violet-50/80 p-3 ring-1 ring-violet-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.015] hover:bg-violet-100 hover:ring-violet-500/75 hover:shadow-[0_18px_36px_rgba(76,29,149,0.26),0_0_0_1px_rgba(139,92,246,0.3)]"
               >
-                <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-violet-100/24 to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
-                <span className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-violet-200/0 transition-all duration-300 group-hover:ring-1 group-hover:ring-violet-200/35" />
-                <p className="inline-flex items-center gap-2.5 font-medium text-violet-50">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-emerald-300/35 bg-emerald-300/12 text-emerald-200 transition duration-300 group-hover:bg-emerald-200/20 group-hover:text-emerald-100">
+                <span className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-violet-200/0 transition-all duration-300 group-hover:ring-1 group-hover:ring-violet-200/40" />
+                <p className="inline-flex items-center gap-2.5 font-medium text-zinc-900 transition-colors duration-300 group-hover:text-violet-950">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-violet-300/45 bg-violet-100/80 text-violet-700 transition duration-300 group-hover:bg-violet-300/70 group-hover:text-violet-950 group-hover:shadow-[0_0_12px_rgba(139,92,246,0.28)]">
                     <SparklesIcon className="h-3.5 w-3.5" />
                   </span>
                   {title}
                 </p>
-                <p className="mt-1 text-xs text-violet-200/75">
+                <p className="mt-1 text-xs text-zinc-500 transition-colors duration-300 group-hover:text-violet-700">
                   Punktewert: {reward.points_cost}
                 </p>
-                <p className="mt-2 text-xs text-violet-100/85">
+                <p className="mt-2 text-xs text-zinc-700 transition-colors duration-300 group-hover:text-violet-800">
                   {missing > 0
                     ? `Noch ${missing} Punkte fehlen`
                     : "Einlösung jetzt möglich"}

@@ -61,6 +61,10 @@ body {
     25% 93.3%,
     0% 50%
   );
+  box-shadow:
+    inset 0 0 0 1px rgba(199, 155, 255, 0.55),
+    0 0 16px rgba(126, 68, 255, 0.35),
+    0 0 28px rgba(126, 68, 255, 0.2);
 }
 
 .hex-pulse {
@@ -76,7 +80,7 @@ body {
 }
 
 .hex-honeycomb-bg {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='72' viewBox='0 0 84 72'%3E%3Cg fill='none' stroke='rgba(159,124,255,0.22)' stroke-width='1.2'%3E%3Cpath d='M21 3.5 L42 15.5 L42 39.5 L21 51.5 L0 39.5 L0 15.5 Z'/%3E%3Cpath d='M63 3.5 L84 15.5 L84 39.5 L63 51.5 L42 39.5 L42 15.5 Z'/%3E%3Cpath d='M42 39.5 L63 51.5 L63 75.5 L42 87.5 L21 75.5 L21 51.5 Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='72' viewBox='0 0 84 72'%3E%3Cg fill='none' stroke='rgba(179,130,255,0.34)' stroke-width='1.35'%3E%3Cpath d='M21 3.5 L42 15.5 L42 39.5 L21 51.5 L0 39.5 L0 15.5 Z'/%3E%3Cpath d='M63 3.5 L84 15.5 L84 39.5 L63 51.5 L42 39.5 L42 15.5 Z'/%3E%3Cpath d='M42 39.5 L63 51.5 L63 75.5 L42 87.5 L21 75.5 L21 51.5 Z'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 126px 108px;
   background-repeat: repeat;
 }

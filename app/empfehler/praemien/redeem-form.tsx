@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { FormEvent } from "react";
 import { redeemRewardAction } from "@/app/empfehler/praemien/actions";
@@ -23,7 +23,7 @@ export function RedeemForm({
     }
 
     const confirmed = window.confirm(
-      `Moechten Sie wirklich ${pointsCost} Punkte ausgeben, um "${rewardTitle}" einzuloesen?`,
+      `Möchten Sie wirklich ${pointsCost} Punkte ausgeben, um "${rewardTitle}" einzulösen?`,
     );
     if (!confirmed) {
       event.preventDefault();
@@ -36,9 +36,9 @@ export function RedeemForm({
       <button
         type="submit"
         disabled={!canRedeem}
-        className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-lg border border-violet-300/45 bg-violet-600 px-3 py-1.5 text-sm font-medium text-white shadow-[0_10px_20px_rgba(91,61,200,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 hover:shadow-[0_16px_28px_rgba(91,61,200,0.36)] disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Praemie einloesen
+        Prämie einlösen
       </button>
     </form>
   );

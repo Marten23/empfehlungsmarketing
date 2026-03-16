@@ -113,7 +113,7 @@ export async function awardManualReferralPointsAction(formData: FormData) {
       points,
       transaction_type: "earn_referral_close",
       referral_id: referral.id as string,
-      description: "Manuelle Punktevergabe fuer Abschluss",
+      description: "Manuelle Punktevergabe für Abschluss",
       metadata: { referral_id: referral.id, mode: "manual" },
     });
 

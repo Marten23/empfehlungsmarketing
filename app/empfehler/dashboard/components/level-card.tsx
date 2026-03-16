@@ -1,4 +1,4 @@
-import type { ReferrerLevel } from "@/app/empfehler/dashboard/gamification";
+﻿import type { ReferrerLevel } from "@/app/empfehler/dashboard/gamification";
 import { ProgressBar } from "@/app/empfehler/dashboard/components/progress-bar";
 import { TrophyIcon } from "@/app/empfehler/dashboard/components/icons";
 
@@ -25,54 +25,54 @@ type LevelTheme = {
 
 const levelThemes: Record<ReferrerLevel["key"], LevelTheme> = {
   none: {
-    surface: "from-violet-300/10 via-violet-300/5 to-transparent",
-    ring: "ring-violet-300/22",
-    iconWrap: "border-violet-300/35 bg-violet-300/10",
-    iconColor: "text-violet-100",
-    label: "text-violet-200",
-    title: "text-violet-50",
-    text: "text-violet-100/85",
-    subtext: "text-violet-200/75",
+    surface: "bg-white/84",
+    ring: "border-violet-200/55",
+    iconWrap: "border-violet-300/45 bg-violet-100/80",
+    iconColor: "text-violet-700",
+    label: "text-violet-700",
+    title: "text-zinc-900",
+    text: "text-zinc-700",
+    subtext: "text-zinc-500",
   },
   bronze: {
-    surface: "from-amber-300/14 via-amber-200/7 to-transparent",
-    ring: "ring-amber-200/28",
-    iconWrap: "border-violet-300/45 bg-violet-300/14",
-    iconColor: "text-violet-100",
-    label: "text-violet-200",
-    title: "text-violet-50",
-    text: "text-violet-100/85",
-    subtext: "text-violet-200/75",
+    surface: "bg-amber-50/92",
+    ring: "border-amber-200/70",
+    iconWrap: "border-amber-300/55 bg-amber-100/70",
+    iconColor: "text-amber-700",
+    label: "text-amber-700",
+    title: "text-zinc-900",
+    text: "text-zinc-700",
+    subtext: "text-zinc-500",
   },
   silber: {
-    surface: "from-slate-200/16 via-slate-100/8 to-transparent",
-    ring: "ring-slate-200/35",
-    iconWrap: "border-violet-200/55 bg-violet-200/18",
-    iconColor: "text-violet-50",
-    label: "text-violet-100",
-    title: "text-violet-50",
-    text: "text-violet-100/85",
-    subtext: "text-violet-200/75",
+    surface: "bg-slate-50/92",
+    ring: "border-slate-200/80",
+    iconWrap: "border-slate-300/65 bg-slate-100/85",
+    iconColor: "text-slate-700",
+    label: "text-slate-700",
+    title: "text-zinc-900",
+    text: "text-zinc-700",
+    subtext: "text-zinc-500",
   },
   gold: {
-    surface: "from-amber-300/18 via-amber-200/9 to-transparent",
-    ring: "ring-amber-200/38",
-    iconWrap: "border-emerald-300/55 bg-emerald-300/16",
-    iconColor: "text-emerald-200",
-    label: "text-emerald-200",
-    title: "text-violet-50",
-    text: "text-violet-100/85",
-    subtext: "text-violet-200/75",
+    surface: "bg-amber-50/95",
+    ring: "border-amber-300/70",
+    iconWrap: "border-amber-300/65 bg-amber-100/85",
+    iconColor: "text-amber-700",
+    label: "text-amber-700",
+    title: "text-zinc-900",
+    text: "text-zinc-700",
+    subtext: "text-zinc-500",
   },
   platin: {
-    surface: "from-cyan-200/16 via-violet-200/8 to-transparent",
-    ring: "ring-cyan-200/36",
-    iconWrap: "border-emerald-200/60 bg-emerald-200/18",
-    iconColor: "text-emerald-100",
-    label: "text-emerald-100",
-    title: "text-violet-50",
-    text: "text-violet-100/85",
-    subtext: "text-violet-200/75",
+    surface: "bg-cyan-50/92",
+    ring: "border-cyan-200/75",
+    iconWrap: "border-cyan-300/65 bg-cyan-100/80",
+    iconColor: "text-cyan-700",
+    label: "text-cyan-700",
+    title: "text-zinc-900",
+    text: "text-zinc-700",
+    subtext: "text-zinc-500",
   },
 };
 
@@ -89,7 +89,7 @@ export function LevelCard({
 
   return (
     <section
-      className={`h-full rounded-2xl bg-gradient-to-br ${theme.surface} p-4 ring-1 ${theme.ring} shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]`}
+      className={`h-full rounded-2xl border ${theme.ring} ${theme.surface} p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]`}
     >
       <span
         className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ${theme.iconWrap} ${theme.iconColor}`}

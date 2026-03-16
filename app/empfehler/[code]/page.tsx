@@ -80,6 +80,12 @@ export default async function ReferrerInvitePage({
       </header>
 
       <section className="rounded-lg border border-zinc-200 bg-white p-4 text-zinc-900 shadow-sm">
+        <p className="text-[11px] uppercase tracking-wide text-zinc-500">
+          Ihr persönlicher Einladungscode
+        </p>
+        <p className="mt-1 inline-flex rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 font-mono text-xs font-semibold text-zinc-800">
+          {code}
+        </p>
         <p className="mb-4 text-sm text-zinc-700">
           Als Empfehler bringen Sie neue Kontakte ins System. Nach der Registrierung
           erhalten Sie Ihr eigenes Dashboard mit Punkten, Transaktionen und

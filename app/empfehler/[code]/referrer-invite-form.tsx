@@ -80,10 +80,11 @@ export function ReferrerInviteForm({
       </label>
 
       <label className="flex flex-col gap-1 text-sm text-zinc-800">
-        <span>Telefonnummer (optional)</span>
+        <span>Telefonnummer</span>
         <input
           type="tel"
           name="phone"
+          required
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
           className="rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 placeholder:text-zinc-500"

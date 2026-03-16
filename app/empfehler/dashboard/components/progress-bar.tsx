@@ -6,10 +6,10 @@ export function ProgressBar({ value }: ProgressBarProps) {
   const clamped = Math.max(0, Math.min(100, value));
 
   return (
-    <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-violet-950/45 ring-1 ring-violet-300/28 shadow-[inset_0_1px_2px_rgba(0,0,0,0.45)]">
+    <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-violet-100/75 ring-1 ring-violet-300/35 shadow-[inset_0_1px_2px_rgba(76,29,149,0.12)]">
       <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_40%,rgba(255,255,255,0.08),transparent_36%)]" />
       <div
-        className="relative h-full rounded-full bg-gradient-to-r from-violet-600 via-violet-400 to-emerald-400 shadow-[0_0_12px_rgba(159,124,255,0.55)] transition-all duration-500"
+        className="relative h-full rounded-full bg-violet-600 shadow-[0_0_10px_rgba(139,92,246,0.35)] transition-all duration-500"
         style={{ width: `${clamped}%` }}
       >
         <span className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent" />

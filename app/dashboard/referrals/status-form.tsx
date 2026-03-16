@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { FormEvent } from "react";
 import type { ReferralStatus } from "@/lib/types/domain";
@@ -11,6 +11,14 @@ const statuses: ReferralStatus[] = [
   "abschluss",
   "abgelehnt",
 ];
+
+const statusLabels: Record<ReferralStatus, string> = {
+  neu: "neu",
+  kontaktiert: "kontaktiert",
+  termin: "termin",
+  abschluss: "abschluss",
+  abgelehnt: "abgelehnt",
+};
 
 type ReferralStatusFormProps = {
   referralId: string;
@@ -34,7 +42,7 @@ export function ReferralStatusForm({
     if (nextStatus !== "abschluss") return;
 
     const confirmed = window.confirm(
-      "Moechten Sie den Status wirklich auf 'abschluss' setzen? Dieser Status ist danach gesperrt.",
+      "Möchten Sie den Status wirklich auf 'abschluss' setzen? Dieser Status ist danach gesperrt.",
     );
     if (!confirmed) {
       event.preventDefault();
@@ -52,18 +60,18 @@ export function ReferralStatusForm({
         name="status"
         defaultValue={currentStatus}
         disabled={isLocked}
-        className="rounded border border-zinc-300 bg-white px-2 py-1 text-sm disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
+        className="rounded-lg border border-violet-300/55 bg-white px-2 py-1 text-sm text-zinc-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 hover:border-violet-400/65 hover:bg-violet-50/70 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500"
       >
         {statuses.map((status) => (
           <option key={status} value={status}>
-            {status}
+            {statusLabels[status]}
           </option>
         ))}
       </select>
       <button
         type="submit"
         disabled={isLocked}
-        className="rounded bg-zinc-900 px-3 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-lg border border-violet-300/50 bg-violet-600 px-3 py-1 text-xs font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 hover:shadow-[0_10px_18px_rgba(76,29,149,0.25)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isLocked ? "Final" : "Speichern"}
       </button>

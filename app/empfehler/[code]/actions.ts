@@ -52,6 +52,14 @@ export async function registerReferrerFromInvite(
     };
   }
 
+  if (!phone) {
+    return {
+      success: false,
+      message: null,
+      error: "Bitte eine Telefonnummer angeben.",
+    };
+  }
+
   if (!privacyAccepted) {
     return {
       success: false,
@@ -63,8 +71,9 @@ export async function registerReferrerFromInvite(
   const signupPayload = new FormData();
   signupPayload.set("email", email);
   signupPayload.set("password", password);
+  signupPayload.set("password_repeat", passwordRepeat);
   signupPayload.set("full_name", fullName);
-  if (phone) signupPayload.set("phone", phone);
+  signupPayload.set("phone", phone);
   signupPayload.set("invite_code", code);
   signupPayload.set("invite_type", "referrer");
 

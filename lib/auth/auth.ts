@@ -13,6 +13,7 @@ function isValidEmail(value: string) {
 function parseCredentials(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const passwordRepeat = String(formData.get("password_repeat") ?? "");
   const inviteCode = String(formData.get("invite_code") ?? "").trim();
   const inviteType = String(formData.get("invite_type") ?? "").trim();
   const fullName = String(formData.get("full_name") ?? "").trim();
@@ -21,6 +22,7 @@ function parseCredentials(formData: FormData) {
   return {
     email,
     password,
+    passwordRepeat,
     inviteCode: inviteCode.length > 0 ? inviteCode : null,
     inviteType: inviteType.length > 0 ? inviteType : null,
     fullName: fullName.length > 0 ? fullName : null,
@@ -53,20 +55,40 @@ async function getProfileRole() {
 }
 
 export async function signup(formData: FormData): Promise<AuthResult> {
-  const { email, password, inviteCode, inviteType, fullName, phone } =
+  const {
+    email,
+    password,
+    passwordRepeat,
+    inviteCode,
+    inviteType,
+    fullName,
+    phone,
+  } =
     parseCredentials(formData);
 
   if (!isValidEmail(email)) {
-    return { error: "Bitte eine gueltige E-Mail eingeben.", message: null };
+    return { error: "Bitte eine gültige E-Mail eingeben.", message: null };
   }
 
   if (password.length < 6) {
     return { error: "Passwort muss mindestens 6 Zeichen haben.", message: null };
   }
 
+  if (password !== passwordRepeat) {
+    return { error: "Passwörter stimmen nicht überein.", message: null };
+  }
+
+  if (!fullName) {
+    return { error: "Bitte einen Namen angeben.", message: null };
+  }
+
+  if (!phone) {
+    return { error: "Bitte eine Telefonnummer angeben.", message: null };
+  }
+
   if (inviteType === "referrer" && !inviteCode) {
     return {
-      error: "Empfehler-Einladungslink unvollstaendig (Code fehlt).",
+      error: "Empfehler-Einladungslink unvollständig (Code fehlt).",
       message: null,
     };
   }
@@ -119,7 +141,7 @@ export async function signup(formData: FormData): Promise<AuthResult> {
   return {
     error: null,
     message:
-      "Registrierung erfolgreich. Bitte bestätige ggf. deine E-Mail und melde dich dann an.",
+      "Registrierung erfolgreich. Bitte bestätigen Sie ggf. Ihre E-Mail und melden Sie sich danach an.",
   };
 }
 
@@ -127,7 +149,7 @@ export async function login(formData: FormData): Promise<AuthResult> {
   const { email, password } = parseCredentials(formData);
 
   if (!isValidEmail(email)) {
-    return { error: "Bitte eine gueltige E-Mail eingeben.", message: null };
+    return { error: "Bitte eine gültige E-Mail eingeben.", message: null };
   }
 
   if (!password) {

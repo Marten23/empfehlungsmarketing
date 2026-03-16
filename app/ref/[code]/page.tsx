@@ -75,7 +75,13 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
         </header>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-4 text-zinc-900 shadow-sm">
-          <p className="text-sm text-zinc-700">
+          <p className="text-[11px] uppercase tracking-wide text-zinc-500">
+            Ihr persönlicher Einladungscode
+          </p>
+          <p className="mt-1 inline-flex rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 font-mono text-xs font-semibold text-zinc-800">
+            {code}
+          </p>
+          <p className="mt-3 text-sm text-zinc-700">
             In diesem Schritt kannst du dein Berater-Konto starten. Die
             Zuordnung der Einladung ist bereits über den Link hinterlegt.
           </p>
