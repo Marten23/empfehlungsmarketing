@@ -1,4 +1,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import path from "node:path";
+import { promises as fs } from "node:fs";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
 
 export type ReferrerContext = {
@@ -28,6 +30,25 @@ function splitName(fullName: string) {
     firstName: firstName || "Empfehler",
     lastName: rest || "-",
   };
+}
+
+async function getRandomTierAvatarPath(): Promise<string | null> {
+  try {
+    const tierDir = path.join(process.cwd(), "public", "images", "tier");
+    const entries = await fs.readdir(tierDir, { withFileTypes: true });
+    const images = entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name)
+      .filter((name) => /\.(png|jpg|jpeg|webp|gif|avif)$/i.test(name));
+
+    if (images.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * images.length);
+    const randomFile = images[randomIndex];
+    if (!randomFile) return null;
+    return `/images/tier/${randomFile}`;
+  } catch {
+    return null;
+  }
 }
 
 export async function getCurrentReferrerContext(
@@ -125,12 +146,22 @@ export async function ensureReferrerOnboardingForUser(
 
   if (error) throw normalizeSupabaseError(error);
 
+  const { data: currentProfile } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const existingAvatar =
+    (currentProfile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
+  const randomTierAvatar = existingAvatar ? null : await getRandomTierAvatarPath();
+
   await supabase.from("profiles").upsert(
     {
       user_id: user.id,
       role: "referrer",
       full_name: `${firstName} ${lastName}`.trim(),
       phone: phoneRaw,
+      avatar_url: existingAvatar ?? randomTierAvatar,
     },
     { onConflict: "user_id" },
   );

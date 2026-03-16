@@ -1,5 +1,4 @@
 import { getCurrentUser } from "@/lib/auth/auth";
-import { logoutAction } from "@/app/dashboard/actions";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAdvisorContext } from "@/lib/auth/advisor";
@@ -170,7 +169,7 @@ export default async function DashboardPage() {
             </p>
             <p className="mt-1 text-sm font-medium text-zinc-800">{user?.email ?? "-"}</p>
             <p className="mt-1 text-xs text-zinc-600">Rolle: {role ?? "nicht gesetzt"}</p>
-            <form action={logoutAction} className="mt-3">
+            <form action="/auth/logout" method="post" className="mt-3">
               <button
                 type="submit"
                 className="rounded-xl border border-white/55 bg-white/88 px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-50 hover:text-zinc-900 hover:ring-1 hover:ring-violet-300/55 hover:shadow-[0_14px_30px_rgba(76,29,149,0.2)]"

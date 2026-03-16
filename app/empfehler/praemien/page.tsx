@@ -15,6 +15,8 @@ import {
   SparklesIcon,
   TrophyIcon,
 } from "@/app/empfehler/dashboard/components/icons";
+import { ReferrerAreaHeader } from "@/app/empfehler/components/referrer-area-header";
+import { getReferrerTheme } from "@/lib/ui/referrer-theme";
 
 type ReferrerRewardsPageProps = {
   searchParams: Promise<{ redeemed?: string; reason?: string; sort?: string }>;
@@ -43,6 +45,18 @@ export default async function ReferrerRewardsPage({
   if (!referrerContext) {
     redirect("/empfehler/login");
   }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profileThemeRow } = await supabase
+    .from("profiles")
+    .select("referrer_theme")
+    .eq("user_id", user?.id ?? "")
+    .maybeSingle();
+  const referrerTheme = getReferrerTheme(
+    (profileThemeRow as { referrer_theme?: string | null } | null)?.referrer_theme,
+  );
 
   let balance = 0;
   let rewards: Awaited<ReturnType<typeof listActiveRewardsForAdvisor>> = [];
@@ -75,8 +89,10 @@ export default async function ReferrerRewardsPage({
 
   return (
     <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_15%_0%,rgba(126,87,255,0.24),transparent_34%),radial-gradient(circle_at_85%_8%,rgba(159,124,255,0.2),transparent_32%),linear-gradient(180deg,#150d24_0%,#120a1f_100%)]" />
-      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-22" />
+      <div className={`pointer-events-none fixed inset-0 z-0 ${referrerTheme.backgroundClass}`} />
+      <div
+        className={`${referrerTheme.honeycombClass} ${referrerTheme.honeycombOpacityClass} pointer-events-none fixed inset-0 z-0`}
+      />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[4%] top-[18%] h-[220px] w-[260px] opacity-55">
           <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-violet-300/30 bg-violet-300/10" />
@@ -91,6 +107,8 @@ export default async function ReferrerRewardsPage({
           <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-violet-300/24 bg-violet-300/8 [animation-delay:3.2s]" />
         </div>
       </div>
+
+      <ReferrerAreaHeader active="praemien" />
 
       <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/55 bg-violet-50/88 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.38)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -283,4 +301,5 @@ export default async function ReferrerRewardsPage({
     </div>
   );
 }
+
 
