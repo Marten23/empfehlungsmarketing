@@ -19,11 +19,20 @@ import {
 import type { PointsTransactionType } from "@/lib/types/domain";
 import { ReferrerAreaHeader } from "@/app/empfehler/components/referrer-area-header";
 import { getReferrerTheme } from "@/lib/ui/referrer-theme";
+import { PodiumRanklist } from "@/app/empfehler/dashboard/components/podium-ranklist";
+import { AdvisorBusinessImage } from "@/app/components/advisor-business-image";
+import { ReferrerInbox } from "@/app/empfehler/dashboard/components/referrer-inbox";
+import {
+  deleteNotificationAction,
+  markNotificationReadAction,
+  submitSurveyResponseAction,
+} from "@/app/empfehler/dashboard/actions";
 
 type AdvisorBannerData = {
   displayName: string;
   subtitle: string | null;
   phone: string | null;
+  email: string | null;
   avatarUrl: string | null;
 };
 
@@ -31,13 +40,27 @@ type LeaderboardEntry = {
   referrerId: string;
   name: string;
   points: number;
+  avatarUrl: string | null;
 };
 
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean).slice(0, 2);
-  if (parts.length === 0) return "B";
-  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
-}
+type ReferrerInboxNotification = {
+  id: string;
+  title: string;
+  message: string | null;
+  notificationType: "reward_survey" | "info";
+  rewardSurveyId: string | null;
+  isRead: boolean;
+  createdAt: string;
+};
+
+type ReferrerInboxSurvey = {
+  id: string;
+  title: string;
+  description: string | null;
+  surveyType: "preset" | "open_budget";
+  budgetLimitEur: number | null;
+  options: Array<{ id: string; text: string }>;
+};
 
 function formatReferrerName(firstName: string, lastName: string) {
   const cleanFirst = firstName.trim() || "Empfehler";
@@ -90,7 +113,14 @@ function StatChip({
   );
 }
 
-export default async function ReferrerDashboardPage() {
+type ReferrerDashboardPageProps = {
+  searchParams: Promise<{ survey_saved?: string; survey_error?: string }>;
+};
+
+export default async function ReferrerDashboardPage({
+  searchParams,
+}: ReferrerDashboardPageProps) {
+  const params = await searchParams;
   const supabase = await createClient();
   const referrerContext = await getCurrentReferrerContext(supabase);
 
@@ -114,6 +144,7 @@ export default async function ReferrerDashboardPage() {
     displayName: referrerContext.advisorName,
     subtitle: "Ihr Ansprechpartner",
     phone: null,
+    email: null,
     avatarUrl: null,
   };
 
@@ -122,6 +153,8 @@ export default async function ReferrerDashboardPage() {
   let recentReferrals: Array<{ id: string; name: string; status: string }> = [];
   let rewards: Awaited<ReturnType<typeof listActiveRewardsForAdvisor>> = [];
   let leaderboard: LeaderboardEntry[] = [];
+  let inboxNotifications: ReferrerInboxNotification[] = [];
+  let inboxSurveys: ReferrerInboxSurvey[] = [];
   let loadError: string | null = null;
   let levelThresholds = {
     bronze: 100,
@@ -131,7 +164,7 @@ export default async function ReferrerDashboardPage() {
   };
 
   try {
-    const [rewardData, referrersData, ownPointsData, allPointsRows, referralData] =
+    const [rewardData, referrersData, ownPointsData, allPointsRows, referralData, notificationRows] =
       await Promise.all([
         listActiveRewardsForAdvisor(supabase, referrerContext.advisorId),
         listReferrersForAdvisor(supabase, referrerContext.advisorId),
@@ -141,18 +174,27 @@ export default async function ReferrerDashboardPage() {
           .eq("advisor_id", referrerContext.advisorId)
           .eq("referrer_id", referrerContext.referrerId),
         supabase
-          .from("points_transactions")
-          .select("referrer_id, points, transaction_type")
-          .eq("advisor_id", referrerContext.advisorId),
+          .rpc("get_referrer_leaderboard", {
+            p_advisor_id: referrerContext.advisorId,
+          }),
         listReferralsForReferrer(
           supabase,
           referrerContext.advisorId,
           referrerContext.referrerId,
         ),
+        supabase
+          .from("referrer_notifications")
+          .select("id, title, message, notification_type, reward_survey_id, is_read, created_at")
+          .eq("advisor_id", referrerContext.advisorId)
+          .eq("referrer_id", referrerContext.referrerId)
+          .eq("is_read", false)
+          .order("created_at", { ascending: false })
+          .limit(6),
       ]);
 
     if (ownPointsData.error) throw ownPointsData.error;
     if (allPointsRows.error) throw allPointsRows.error;
+    if (notificationRows.error) throw notificationRows.error;
 
     const ownPointsRows = (ownPointsData.data ?? []) as Array<{
       points: number | null;
@@ -183,26 +225,118 @@ export default async function ReferrerDashboardPage() {
     }));
 
     const pointsByReferrer = new Map<string, number>();
-    for (const row of allPointsRows.data ?? []) {
+    for (const row of (allPointsRows.data ?? []) as Array<{
+      referrer_id: string | null;
+      total_points: number | null;
+    }>) {
       const referrerId = String(row.referrer_id ?? "");
       if (!referrerId) continue;
-      const points = Number(row.points ?? 0);
-      // Leaderboard auf Gesamtpunkte (verdiente Punkte), nicht auf Saldo.
-      if (points <= 0) continue;
-      pointsByReferrer.set(referrerId, (pointsByReferrer.get(referrerId) ?? 0) + points);
+      const points = Number(row.total_points ?? 0);
+      pointsByReferrer.set(referrerId, points);
+    }
+
+    const profileIds = referrersData
+      .map((row) => row.user_id)
+      .filter((value): value is string => Boolean(value));
+    const avatarByUserId = new Map<string, string | null>();
+    if (profileIds.length > 0) {
+      const { data: profileRows } = await supabase
+        .from("profiles")
+        .select("user_id, avatar_url")
+        .in("user_id", profileIds);
+      for (const row of (profileRows ?? []) as Array<{ user_id: string; avatar_url: string | null }>) {
+        avatarByUserId.set(row.user_id, row.avatar_url ?? null);
+      }
     }
 
     leaderboard = referrersData
-      .filter((row) => row.is_active || row.id === referrerContext.referrerId)
+      // Rangliste über alle Empfehler im Beraterprogramm (nicht nur aktive).
+      .filter((row) => Boolean(row.id))
       .map((row) => ({
         referrerId: row.id,
         name: formatReferrerName(row.first_name, row.last_name),
         points: pointsByReferrer.get(row.id) ?? 0,
+        avatarUrl: row.user_id ? (avatarByUserId.get(row.user_id) ?? null) : null,
       }))
       .sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         return a.name.localeCompare(b.name, "de-DE");
       });
+
+    inboxNotifications = ((notificationRows.data ?? []) as Array<{
+      id: string;
+      title: string;
+      message: string | null;
+      notification_type: "reward_survey" | "info" | null;
+      reward_survey_id: string | null;
+      is_read: boolean | null;
+      created_at: string;
+    }>).map((row) => ({
+      id: row.id,
+      title: row.title,
+      message: row.message,
+      notificationType: row.notification_type === "reward_survey" ? "reward_survey" : "info",
+      rewardSurveyId: row.reward_survey_id,
+      isRead: Boolean(row.is_read),
+      createdAt: row.created_at,
+    }));
+
+    const surveyIds = Array.from(
+      new Set(
+        inboxNotifications
+          .map((item) => item.rewardSurveyId)
+          .filter((value): value is string => Boolean(value)),
+      ),
+    );
+
+    if (surveyIds.length > 0) {
+      const [{ data: surveyRows, error: surveyError }, { data: optionRows, error: optionError }] =
+        await Promise.all([
+          supabase
+            .from("reward_surveys")
+            .select("id, title, description, survey_type, budget_limit_eur, is_active")
+            .eq("advisor_id", referrerContext.advisorId)
+            .eq("is_active", true)
+            .in("id", surveyIds),
+          supabase
+            .from("reward_survey_options")
+            .select("id, survey_id, option_text, sort_order")
+            .eq("advisor_id", referrerContext.advisorId)
+            .in("survey_id", surveyIds)
+            .order("sort_order", { ascending: true }),
+        ]);
+      if (surveyError) throw surveyError;
+      if (optionError) throw optionError;
+
+      const optionsBySurvey = new Map<string, Array<{ id: string; text: string }>>();
+      for (const row of (optionRows ?? []) as Array<{
+        id: string;
+        survey_id: string | null;
+        option_text: string | null;
+      }>) {
+        const surveyId = String(row.survey_id ?? "");
+        const text = String(row.option_text ?? "").trim();
+        if (!surveyId || !text) continue;
+        const arr = optionsBySurvey.get(surveyId) ?? [];
+        arr.push({ id: row.id, text });
+        optionsBySurvey.set(surveyId, arr);
+      }
+
+      inboxSurveys = ((surveyRows ?? []) as Array<{
+        id: string;
+        title: string;
+        description: string | null;
+        survey_type: "preset" | "open_budget" | null;
+        budget_limit_eur: number | null;
+      }>).map((row) => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        surveyType: row.survey_type === "open_budget" ? "open_budget" : "preset",
+        budgetLimitEur: row.budget_limit_eur,
+        options: optionsBySurvey.get(row.id) ?? [],
+      }));
+    }
 
     const { data: advisorCore, error: advisorCoreError } = await supabase
       .from("advisors")
@@ -238,6 +372,7 @@ export default async function ReferrerDashboardPage() {
               typeof ownerProfile.phone === "string"
                 ? ownerProfile.phone
                 : null,
+            email: advisorBanner.email,
             avatarUrl:
               typeof ownerProfile.avatar_url === "string"
                 ? ownerProfile.avatar_url
@@ -250,7 +385,7 @@ export default async function ReferrerDashboardPage() {
     const { data: settingsRow, error: settingsError } = await supabase
       .from("advisor_settings")
       .select(
-        "level_bronze_points, level_silver_points, level_gold_points, level_platinum_points",
+        "level_bronze_points, level_silver_points, level_gold_points, level_platinum_points, contact_name, contact_phone, contact_email, contact_avatar_url",
       )
       .eq("advisor_id", referrerContext.advisorId)
       .maybeSingle();
@@ -264,6 +399,10 @@ export default async function ReferrerDashboardPage() {
         level_gold_points?: number | null;
         level_platinum_points?: number | null;
         level_bronze_points?: number | null;
+        contact_name?: string | null;
+        contact_phone?: string | null;
+        contact_email?: string | null;
+        contact_avatar_url?: string | null;
       } | null;
       levelThresholds = {
         bronze: row?.level_bronze_points ?? 100,
@@ -271,6 +410,16 @@ export default async function ReferrerDashboardPage() {
         gold: row?.level_gold_points ?? 500,
         platinum: row?.level_platinum_points ?? 1000,
       };
+
+      const contactName = String(row?.contact_name ?? "").trim();
+      const contactPhone = String(row?.contact_phone ?? "").trim();
+      const contactEmail = String(row?.contact_email ?? "").trim();
+      const contactAvatar = String(row?.contact_avatar_url ?? "").trim();
+
+      if (contactName) advisorBanner.displayName = contactName;
+      if (contactPhone) advisorBanner.phone = contactPhone;
+      if (contactEmail) advisorBanner.email = contactEmail;
+      if (contactAvatar) advisorBanner.avatarUrl = contactAvatar;
     }
   } catch (error) {
     loadError = normalizeSupabaseError(error).message;
@@ -291,8 +440,6 @@ export default async function ReferrerDashboardPage() {
     (row) => row.referrerId === referrerContext.referrerId,
   );
   const myRank = myRankIndex >= 0 ? myRankIndex + 1 : null;
-  const rowAhead = myRankIndex > 0 ? leaderboard[myRankIndex - 1] : null;
-  const myLeaderboardEntry = myRankIndex >= 0 ? leaderboard[myRankIndex] : null;
 
   const nextRewardTitle = nextReward?.reward?.title ?? "Prämie";
   const pointsToNextReward = nextReward?.pointsMissing ?? 0;
@@ -386,25 +533,23 @@ export default async function ReferrerDashboardPage() {
                 />
               </div>
             </div>
+
+            <ReferrerInbox
+              notifications={inboxNotifications}
+              surveys={inboxSurveys}
+              submitSurveyResponseAction={submitSurveyResponseAction}
+              markNotificationReadAction={markNotificationReadAction}
+              deleteNotificationAction={deleteNotificationAction}
+            />
           </div>
 
           <aside className="overflow-hidden rounded-3xl border border-violet-200/70 bg-white/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-            <div className="relative h-52 bg-[radial-gradient(circle_at_24%_14%,rgba(143,98,255,0.35),transparent_46%),linear-gradient(180deg,rgba(109,69,221,0.24),rgba(109,69,221,0.04))]">
-              {advisorBanner.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={advisorBanner.avatarUrl}
-                  alt={advisorBanner.displayName}
-                  className="h-full w-full object-cover object-center"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <span className="inline-flex h-24 w-24 items-center justify-center rounded-full border border-violet-300/70 bg-violet-100/90 text-2xl font-semibold text-violet-800">
-                    {getInitials(advisorBanner.displayName)}
-                  </span>
-                </div>
-              )}
-            </div>
+            <AdvisorBusinessImage
+              imageUrl={advisorBanner.avatarUrl}
+              name={advisorBanner.displayName}
+              ratio="portrait"
+              className="mx-auto w-full max-w-[240px] rounded-b-none md:rounded-b-2xl"
+            />
               <div className="space-y-3 px-4 py-4 text-center">
                 <div>
                   <p className="text-lg font-semibold text-zinc-900">{advisorBanner.displayName}</p>
@@ -414,7 +559,7 @@ export default async function ReferrerDashboardPage() {
                 <p className="font-medium text-zinc-800">
                   {advisorBanner.phone ?? "Telefon auf Anfrage"}
                 </p>
-                <p className="text-zinc-600">E-Mail über den Beraterbereich</p>
+                <p className="text-zinc-600">{advisorBanner.email ?? "E-Mail auf Anfrage"}</p>
               </div>
             </div>
           </aside>
@@ -423,72 +568,20 @@ export default async function ReferrerDashboardPage() {
         <div className="my-5 h-px bg-violet-200/70" />
 
           <div className="grid gap-4 xl:grid-cols-[0.86fr_1.14fr]">
-            <div className="rounded-3xl border border-violet-300/60 bg-[linear-gradient(160deg,rgba(62,33,110,0.92),rgba(38,20,70,0.9))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_24px_46px_rgba(16,8,30,0.45)] md:p-4">
-              <div className="mx-auto inline-flex items-center gap-2 rounded-b-2xl rounded-t-xl border border-fuchsia-300/45 bg-[linear-gradient(180deg,rgba(246,97,176,0.9),rgba(214,45,141,0.92))] px-4 py-1.5 shadow-[0_10px_24px_rgba(214,45,141,0.3)]">
-                <TrophyIcon className="h-4 w-4 text-white" />
-                <span className="text-xs font-semibold tracking-[0.2em] text-white">LEADERBOARD</span>
-              </div>
-
-              <div className="mt-3 space-y-2">
-                {leaderboard.length === 0 ? (
-                  <div className="rounded-xl border border-violet-300/35 bg-violet-900/35 px-3 py-2 text-xs text-violet-100/85">
-                    Noch keine Ranglistendaten vorhanden.
-                  </div>
-                ) : (
-                  leaderboard.slice(0, 8).map((entry, index) => {
-                    const rank = index + 1;
-                    const isTop3 = rank <= 3;
-                    const isCurrent = entry.referrerId === referrerContext.referrerId;
-                    const medal =
-                      rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : null;
-
-                    return (
-                      <div
-                        key={entry.referrerId}
-                        className={`rounded-xl border px-3 py-2 ${
-                          isTop3
-                            ? "border-fuchsia-300/45 bg-violet-900/40"
-                            : "border-violet-300/30 bg-violet-950/25"
-                        } ${isCurrent ? "ring-1 ring-fuchsia-300/55" : ""}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="flex min-w-[38px] items-center justify-center gap-1 text-sm font-semibold text-violet-100">
-                            {medal ? <span className="text-base leading-none">{medal}</span> : null}
-                            <span>{rank}</span>
-                          </div>
-                          <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
-                            {entry.name}
-                            {isCurrent ? (
-                              <span className="ml-2 text-[11px] font-medium text-fuchsia-200/95">
-                                Du
-                              </span>
-                            ) : null}
-                          </p>
-                          <p className="text-sm font-semibold text-fuchsia-100">
-                            {formatPoints(entry.points)}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              {myRank && myRank > 8 ? (
-                <div className="mx-auto mt-3 max-w-md rounded-2xl border border-fuchsia-300/45 bg-violet-950/45 px-4 py-2.5 text-center shadow-[0_18px_32px_rgba(14,8,27,0.45)]">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-fuchsia-200/90">
-                    Dein Platz
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-white">
-                    {myRank}. {formatPoints(myLeaderboardEntry?.points ?? availablePoints)} Punkte
-                  </p>
-                  {rowAhead ? (
-                    <p className="mt-1 text-xs text-violet-100/85">
-                      Vor dir: {myRank - 1}. {rowAhead.name} · {formatPoints(rowAhead.points)} Punkte
-                    </p>
-                  ) : null}
+            <div className="rounded-3xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_0%,rgba(255,230,170,0.18),transparent_42%),linear-gradient(165deg,rgba(34,28,22,0.95),rgba(17,14,12,0.96))] p-3 shadow-[inset_0_1px_0_rgba(255,240,210,0.14),0_24px_46px_rgba(10,8,6,0.58)] md:p-4">
+              <div className="flex justify-center">
+                <div className="inline-flex items-center gap-2 rounded-b-2xl rounded-t-xl border border-amber-300/35 bg-[linear-gradient(180deg,rgba(253,214,135,0.95),rgba(228,172,69,0.94))] px-4 py-1.5 shadow-[0_10px_24px_rgba(188,132,40,0.33)]">
+                  <TrophyIcon className="h-4 w-4 text-white" />
+                  <span className="text-xs font-semibold tracking-[0.2em] text-amber-950">RANGLISTE</span>
                 </div>
-              ) : null}
+              </div>
+
+              <div className="mt-3">
+                <PodiumRanklist
+                  entries={leaderboard}
+                  currentReferrerId={referrerContext.referrerId}
+                />
+              </div>
             </div>
 
             <aside className="rounded-3xl border border-violet-200/70 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_16px_30px_rgba(10,6,20,0.2)]">
@@ -545,6 +638,16 @@ export default async function ReferrerDashboardPage() {
       {loadError ? (
         <p className="rounded-xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-sm text-rose-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
           Daten konnten nicht vollständig geladen werden: {loadError}
+        </p>
+      ) : null}
+      {params.survey_saved === "1" ? (
+        <p className="rounded-xl border border-emerald-300/70 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+          Ihre Umfrage-Antwort wurde gespeichert.
+        </p>
+      ) : null}
+      {params.survey_error ? (
+        <p className="rounded-xl border border-rose-300/70 bg-rose-50/90 px-3 py-2 text-sm text-rose-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+          Umfrage konnte nicht gespeichert werden: {decodeURIComponent(params.survey_error)}
         </p>
       ) : null}
 

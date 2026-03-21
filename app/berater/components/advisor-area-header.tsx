@@ -1,6 +1,6 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentReferrerContext } from "@/lib/auth/referrer";
+import { getCurrentAdvisorContext } from "@/lib/auth/advisor";
 import {
   BookIcon,
   GiftIcon,
@@ -8,39 +8,42 @@ import {
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
 
-export type ReferrerAreaNavKey =
+export type AdvisorAreaNavKey =
   | "dashboard"
-  | "punktekonto"
   | "empfehlungen"
   | "praemien"
+  | "referrers"
+  | "advisors"
+  | "einstellungen"
   | "mein-konto";
 
-type ReferrerAreaHeaderProps = {
-  active: ReferrerAreaNavKey;
+type AdvisorAreaHeaderProps = {
+  active: AdvisorAreaNavKey;
 };
 
 type NavItem = {
-  key: ReferrerAreaNavKey;
+  key: AdvisorAreaNavKey;
   href: string;
   label: string;
 };
 
 const navItems: NavItem[] = [
-  { key: "punktekonto", href: "/empfehler/punktekonto", label: "Punktekonto" },
-  { key: "empfehlungen", href: "/empfehler/empfehlungen", label: "Empfehlungen" },
-  { key: "praemien", href: "/empfehler/praemien", label: "Prämien" },
+  { key: "empfehlungen", href: "/berater/empfehlungen", label: "Empfehlungen" },
+  { key: "praemien", href: "/berater/praemien", label: "Prämien" },
+  { key: "referrers", href: "/berater/dashboard/referrers", label: "Empfehler" },
+  { key: "advisors", href: "/berater/dashboard/advisors", label: "Programm" },
 ];
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean).slice(0, 2);
-  if (parts.length === 0) return "E";
+  if (parts.length === 0) return "B";
   return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
 }
 
-export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
+export async function AdvisorAreaHeader({ active }: AdvisorAreaHeaderProps) {
   const supabase = await createClient();
-  const referrerContext = await getCurrentReferrerContext(supabase);
-  if (!referrerContext) return null;
+  const advisorContext = await getCurrentAdvisorContext();
+  if (!advisorContext) return null;
 
   const {
     data: { user },
@@ -54,8 +57,8 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
 
   const profileName =
     (profile as { full_name?: string | null } | null)?.full_name?.trim() ||
-    `${referrerContext.firstName} ${referrerContext.lastName}`.trim() ||
-    "Empfehler";
+    advisorContext.advisorName ||
+    "Berater";
   const profileAvatar =
     (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
 
@@ -67,7 +70,7 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
             <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
               <div className="flex items-center gap-2 md:gap-4">
                 <Link
-                  href="/empfehler/dashboard"
+                  href="/berater/dashboard"
                   className="inline-flex items-center gap-2.5 rounded-2xl border border-violet-300/60 bg-violet-100/80 px-3 py-2 text-sm font-semibold tracking-wide text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-200/75"
                 >
                   <SparklesIcon className="h-4.5 w-4.5" />
@@ -115,10 +118,16 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
                       </Link>
                     ))}
                     <Link
-                      href="/empfehler/mein-konto"
+                      href="/berater/mein-konto"
                       className="mt-1 block rounded-lg px-2.5 py-2 text-sm text-zinc-800 hover:bg-violet-100/80"
                     >
                       Mein Konto
+                    </Link>
+                    <Link
+                      href="/berater/einstellungen"
+                      className="mt-1 block rounded-lg px-2.5 py-2 text-sm text-zinc-800 hover:bg-violet-100/80"
+                    >
+                      Einstellungen
                     </Link>
                   </div>
                 </details>
@@ -138,7 +147,7 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
                           {getInitials(profileName)}
                         </span>
                       )}
-                      <span className="hidden max-w-[150px] truncate text-sm font-semibold text-zinc-800 lg:inline">
+                      <span className="hidden max-w-[170px] truncate text-sm font-semibold text-zinc-800 lg:inline">
                         {profileName}
                       </span>
                     </span>
@@ -147,18 +156,23 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
                   <div className="absolute right-0 mt-2 w-56 rounded-xl border border-violet-200/70 bg-white/96 p-2 shadow-[0_20px_40px_rgba(5,3,12,0.28)]">
                     <div className="rounded-lg border border-violet-100/80 bg-violet-50/65 px-2.5 py-2">
                       <p className="truncate text-sm font-semibold text-zinc-900">{profileName}</p>
-                      <p className="truncate text-xs text-zinc-600">
-                        {user?.email ?? "eingeloggt"}
-                      </p>
+                      <p className="truncate text-xs text-zinc-600">{user?.email ?? "eingeloggt"}</p>
                     </div>
                     <Link
-                      href="/empfehler/mein-konto"
+                      href="/berater/mein-konto"
                       className="mt-1.5 flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-zinc-800 transition-colors hover:bg-violet-100/80"
                     >
                       <UsersIcon className="h-4 w-4 text-violet-700" />
                       Mein Konto
                     </Link>
-                    <form action="/auth/logout?next=/empfehler/login" method="post" className="mt-1">
+                    <Link
+                      href="/berater/einstellungen"
+                      className="mt-1 flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-zinc-800 transition-colors hover:bg-violet-100/80"
+                    >
+                      <SparklesIcon className="h-4 w-4 text-violet-700" />
+                      Einstellungen
+                    </Link>
+                    <form action="/auth/logout?next=/berater/login" method="post" className="mt-1">
                       <button
                         type="submit"
                         className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-zinc-800 transition-colors hover:bg-violet-100/80"
@@ -178,7 +192,12 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
       <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1 md:hidden">
         {navItems.map((item) => {
           const isActive = active === item.key;
-          const Icon = item.key === "punktekonto" ? BookIcon : item.key === "empfehlungen" ? UsersIcon : GiftIcon;
+          const Icon =
+            item.key === "empfehlungen"
+              ? BookIcon
+              : item.key === "praemien"
+                ? GiftIcon
+                : UsersIcon;
           return (
             <Link
               key={item.key}

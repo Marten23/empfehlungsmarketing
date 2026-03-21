@@ -1,4 +1,4 @@
-
+﻿
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -9,13 +9,17 @@ import {
 } from "@/lib/queries/rewards";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
 import {
+  createRewardSurveyAction,
+  deleteRewardSurveyAction,
   deleteRewardAction,
   removeRewardImageAction,
   saveRewardAction,
+  updateRewardSurveyAction,
   uploadRewardImageAction,
   updateRedemptionStatusAction,
 } from "@/app/berater/praemien/actions";
 import { ImageFocusPicker } from "@/app/berater/praemien/image-focus-picker";
+import { SurveyCreateForm } from "@/app/berater/praemien/survey-create-form";
 import type { RedemptionStatus } from "@/lib/types/domain";
 import {
   ArrowUpRightIcon,
@@ -24,6 +28,7 @@ import {
   SparklesIcon,
   TrophyIcon,
 } from "@/app/empfehler/dashboard/components/icons";
+import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
 
 const redemptionStatuses: RedemptionStatus[] = [
   "offen",
@@ -53,6 +58,7 @@ type AdvisorRewardsPageProps = {
     reward_id?: string;
     show?: string;
     image_removed?: string;
+    survey_saved?: string;
   }>;
 };
 
@@ -78,6 +84,31 @@ export default async function AdvisorRewardsPage({
   const supabase = await createClient();
   let rewards: Awaited<ReturnType<typeof listRewardsForAdvisor>> = [];
   let redemptions: Awaited<ReturnType<typeof listRewardRedemptionsForAdvisor>> = [];
+  let surveyRows: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    survey_type: string;
+    is_active: boolean;
+    created_at: string;
+    ends_at: string | null;
+    budget_limit_eur: number | null;
+  }> = [];
+  const surveyOptionTextById = new Map<string, string>();
+  const surveyOptionsBySurvey = new Map<string, Array<{ id: string; text: string }>>();
+  const surveyVoteCountByOptionId = new Map<string, number>();
+  const surveyOptionCountBySurvey = new Map<string, number>();
+  const surveyResponseCountBySurvey = new Map<string, number>();
+  const surveyResponsesBySurvey = new Map<
+    string,
+    Array<{
+      id: string;
+      referrerName: string;
+      selectedOptions: string[];
+      note: string | null;
+      createdAt: string;
+    }>
+  >();
   let loadError: string | null = null;
 
   try {
@@ -86,6 +117,143 @@ export default async function AdvisorRewardsPage({
       supabase,
       advisorContext.advisorId,
     );
+
+    const { data: surveys, error: surveysError } = await supabase
+      .from("reward_surveys")
+      .select("id, title, description, survey_type, is_active, created_at, ends_at, budget_limit_eur")
+      .eq("advisor_id", advisorContext.advisorId)
+      .order("created_at", { ascending: false })
+      .limit(6);
+    if (surveysError) throw surveysError;
+    surveyRows = (surveys ?? []) as typeof surveyRows;
+
+    const surveyIds = surveyRows.map((row) => row.id);
+    if (surveyIds.length > 0) {
+      const [{ data: options }, { data: responses }, { data: responseOptions }] = await Promise.all([
+        supabase
+          .from("reward_survey_options")
+          .select("id, survey_id, option_text")
+          .eq("advisor_id", advisorContext.advisorId)
+          .in("survey_id", surveyIds),
+        supabase
+          .from("reward_survey_responses")
+          .select("id, survey_id, selected_option_id, free_suggestion, created_at, referrers(first_name, last_name)")
+          .eq("advisor_id", advisorContext.advisorId)
+          .in("survey_id", surveyIds)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("reward_survey_response_options")
+          .select("response_id, option_id, survey_id")
+          .in("survey_id", surveyIds),
+      ]);
+
+      for (const row of (options ?? []) as Array<{
+        id: string | null;
+        survey_id: string | null;
+        option_text: string | null;
+      }>) {
+        const surveyId = String(row.survey_id ?? "");
+        if (!surveyId) continue;
+        const optionId = String(row.id ?? "");
+        const optionText = String(row.option_text ?? "").trim();
+        if (optionId && optionText) {
+          surveyOptionTextById.set(optionId, optionText);
+          const optionRows = surveyOptionsBySurvey.get(surveyId) ?? [];
+          optionRows.push({ id: optionId, text: optionText });
+          surveyOptionsBySurvey.set(surveyId, optionRows);
+        }
+        surveyOptionCountBySurvey.set(
+          surveyId,
+          (surveyOptionCountBySurvey.get(surveyId) ?? 0) + 1,
+        );
+      }
+      for (const row of (responses ?? []) as Array<{ survey_id: string | null }>) {
+        const surveyId = String(row.survey_id ?? "");
+        if (!surveyId) continue;
+        surveyResponseCountBySurvey.set(
+          surveyId,
+          (surveyResponseCountBySurvey.get(surveyId) ?? 0) + 1,
+        );
+      }
+
+      const optionIdsByResponse = new Map<string, string[]>();
+      const responseIdsWithMultiSelect = new Set<string>();
+      for (const row of (responseOptions ?? []) as Array<{
+        response_id: string | null;
+        option_id: string | null;
+      }>) {
+        const responseId = String(row.response_id ?? "");
+        const optionId = String(row.option_id ?? "");
+        if (!responseId || !optionId) continue;
+        responseIdsWithMultiSelect.add(responseId);
+        const optionsForResponse = optionIdsByResponse.get(responseId) ?? [];
+        optionsForResponse.push(optionId);
+        optionIdsByResponse.set(responseId, optionsForResponse);
+        surveyVoteCountByOptionId.set(
+          optionId,
+          (surveyVoteCountByOptionId.get(optionId) ?? 0) + 1,
+        );
+      }
+
+      for (const row of (responses ?? []) as Array<{
+        id: string | null;
+        survey_id: string | null;
+        selected_option_id: string | null;
+        free_suggestion: string | null;
+        created_at: string | null;
+        referrers:
+          | {
+              first_name?: string | null;
+              last_name?: string | null;
+            }
+          | Array<{
+              first_name?: string | null;
+              last_name?: string | null;
+            }>
+          | null;
+      }>) {
+        const surveyId = String(row.survey_id ?? "");
+        const responseId = String(row.id ?? "");
+        if (!surveyId || !responseId) continue;
+        const referrerRecord = Array.isArray(row.referrers)
+          ? row.referrers[0]
+          : row.referrers;
+        const firstName = String(referrerRecord?.first_name ?? "").trim();
+        const lastName = String(referrerRecord?.last_name ?? "").trim();
+        const referrerName =
+          `${firstName} ${lastName}`.trim() ||
+          "Empfehler";
+        const optionIds = optionIdsByResponse.get(responseId) ?? [];
+        const fallbackOptionId = String(row.selected_option_id ?? "");
+        const normalizedOptionIds =
+          optionIds.length > 0
+            ? optionIds
+            : fallbackOptionId
+                ? [fallbackOptionId]
+                : [];
+        if (
+          fallbackOptionId &&
+          !responseIdsWithMultiSelect.has(responseId)
+        ) {
+          surveyVoteCountByOptionId.set(
+            fallbackOptionId,
+            (surveyVoteCountByOptionId.get(fallbackOptionId) ?? 0) + 1,
+          );
+        }
+        const selectedOptions = normalizedOptionIds
+          .map((optionId) => surveyOptionTextById.get(optionId))
+          .filter((value): value is string => Boolean(value));
+        const rowsForSurvey = surveyResponsesBySurvey.get(surveyId) ?? [];
+        rowsForSurvey.push({
+          id: responseId,
+          referrerName,
+          selectedOptions,
+          note: row.free_suggestion ?? null,
+          createdAt: String(row.created_at ?? ""),
+        });
+        surveyResponsesBySurvey.set(surveyId, rowsForSurvey);
+      }
+    }
   } catch (error) {
     loadError = normalizeSupabaseError(error).message;
   }
@@ -98,7 +266,7 @@ export default async function AdvisorRewardsPage({
   const hasMoreRewards = rewards.length > 10;
 
   return (
-    <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
+    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,rgba(170,130,255,0.16),transparent_52%),radial-gradient(circle_at_15%_0%,rgba(126,87,255,0.26),transparent_42%),radial-gradient(circle_at_85%_8%,rgba(159,124,255,0.2),transparent_40%),linear-gradient(180deg,#1b1230_0%,#140d26_100%)]" />
       <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-24" />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -113,6 +281,8 @@ export default async function AdvisorRewardsPage({
           <div className="hex-node absolute left-44 top-14 h-14 w-14 border border-[#d2adff]/85 bg-[#a374ff]/26" />
         </div>
       </div>
+
+      <AdvisorAreaHeader active="praemien" />
 
       <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -155,7 +325,7 @@ export default async function AdvisorRewardsPage({
           </Link>
         </div>
       </section>
-      <section className="relative z-10 grid gap-4 sm:grid-cols-3">
+      <section className="relative z-10 grid gap-3 sm:grid-cols-3">
         <article className={panelClass}>
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Prämien gesamt</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{rewards.length}</p>
@@ -168,13 +338,6 @@ export default async function AdvisorRewardsPage({
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Inaktiv</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{inactiveRewardsCount}</p>
         </article>
-      </section>
-
-      <section className={`${panelClass} border-amber-300/70 bg-amber-50/95`}>
-        <p className="text-sm font-medium text-amber-900">Hinweis zu Bildrechten</p>
-        <p className="mt-1 text-sm text-amber-900/90">
-          Laden Sie nur Bilder hoch oder verlinken Sie nur Bilder, für die Sie nachweislich Nutzungsrechte besitzen.
-        </p>
       </section>
 
       {params.saved === "1" ? (
@@ -232,6 +395,17 @@ export default async function AdvisorRewardsPage({
           {params.reason ? ` Grund: ${params.reason}` : ""}
         </p>
       ) : null}
+      {params.survey_saved === "1" ? (
+        <p className="rounded-xl border border-emerald-300/70 bg-emerald-50/95 px-3 py-2 text-sm text-emerald-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          Prämien-Umfrage wurde gestartet.
+        </p>
+      ) : null}
+      {params.survey_saved === "0" ? (
+        <p className="rounded-xl border border-rose-300/70 bg-rose-50/95 px-3 py-2 text-sm text-rose-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          Umfrage konnte nicht erstellt werden.
+          {params.reason ? ` Grund: ${params.reason}` : ""}
+        </p>
+      ) : null}
       {loadError ? (
         <p className="rounded-xl border border-rose-300/70 bg-rose-50/95 px-3 py-2 text-sm text-rose-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
           Daten konnten nicht geladen werden: {loadError}
@@ -241,49 +415,12 @@ export default async function AdvisorRewardsPage({
       <section className={panelClass}>
         <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
-            <BookIcon className="h-4 w-4" />
-          </span>
-          Bild vom Gerät hochladen
-        </h2>
-        <p className="mt-1 text-sm text-zinc-600">
-          Hier laden Sie ein Bild hoch und übernehmen die erzeugte Bild-URL direkt ins Formular.
-        </p>
-        <form action={uploadRewardImageAction} className="mt-3 grid gap-3 md:grid-cols-2">
-          <label className="flex flex-col gap-1 text-xs text-zinc-600 md:col-span-2">
-            Bilddatei
-            <input required type="file" name="image_file" accept="image/*" className={inputClass} />
-          </label>
-          <label className="flex flex-col gap-1 text-xs text-zinc-600 md:col-span-2">
-            Quelle/Lizenz zum Bild (optional)
-            <input
-              name="image_source_note"
-              defaultValue={params.f_image_source_note ?? ""}
-              placeholder="z. B. eigenes Foto, Adobe Stock, Herstellerfreigabe"
-              className={inputClass}
-            />
-            <p className={hintClass}>Diese Angabe hilft bei Rückfragen zu Bildrechten.</p>
-          </label>
-          <label className="md:col-span-2 flex items-start gap-2 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3 text-xs text-zinc-700">
-            <input type="checkbox" name="image_rights_confirmed" value="1" defaultChecked={params.f_image_rights_confirmed === "1"} className="mt-0.5" />
-            <span>Ich bestätige, dass ich für dieses Bild die erforderlichen Nutzungsrechte habe.</span>
-          </label>
-          <div className="md:col-span-2">
-            <button type="submit" className={primaryButtonClass}>Bild hochladen und URL übernehmen</button>
-          </div>
-        </form>
-      </section>
-
-      <section className={panelClass}>
-        <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
             <GiftIcon className="h-4 w-4" />
           </span>
           Neue Prämie anlegen
         </h2>
-        <p className="mt-1 text-xs text-zinc-600">
-          Kompakt anlegen: Titel, Punkte, Sichtbarkeit und optionale Details.
-        </p>
-        <div className="mt-3">
+        <p className="mt-1 text-xs text-zinc-600">Kompakt anlegen und optional direkt ein Bild hochladen.</p>
+        <div className="mt-3 grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <form action={saveRewardAction} className="grid gap-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1 text-xs text-zinc-600">
             Titel
@@ -354,7 +491,219 @@ export default async function AdvisorRewardsPage({
             <button type="submit" className={primaryButtonClass}>Prämie speichern</button>
           </div>
           </form>
+
+          <form action={uploadRewardImageAction} className="grid h-fit gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <BookIcon className="h-4 w-4 text-violet-700" />
+              Bild-Upload
+            </p>
+            <label className="flex flex-col gap-1 text-xs text-zinc-600">
+              Bilddatei
+              <input required type="file" name="image_file" accept="image/*" className={inputClass} />
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-zinc-600">
+              Quelle/Lizenz zum Bild (optional)
+              <input
+                name="image_source_note"
+                defaultValue={params.f_image_source_note ?? ""}
+                placeholder="z. B. eigenes Foto, Adobe Stock"
+                className={inputClass}
+              />
+            </label>
+            <label className="flex items-start gap-2 rounded-lg border border-zinc-200 bg-zinc-50/90 p-2.5 text-xs text-zinc-700">
+              <input type="checkbox" name="image_rights_confirmed" value="1" defaultChecked={params.f_image_rights_confirmed === "1"} className="mt-0.5" />
+              <span>Ich bestätige die Nutzungsrechte für dieses Bild.</span>
+            </label>
+            <button type="submit" className={primaryButtonClass}>Bild hochladen und URL übernehmen</button>
+          </form>
         </div>
+      </section>
+
+      <section className={panelClass}>
+        <details className="group" open>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl border border-violet-200/70 bg-violet-50/70 px-3 py-2.5 text-sm font-semibold text-zinc-900">
+            <span className="inline-flex items-center gap-2">
+              <SparklesIcon className="h-4 w-4 text-violet-700" />
+              Prämien-Umfrage an Empfehler
+            </span>
+            <span className="text-xs text-violet-700 transition group-open:rotate-180">▾</span>
+          </summary>
+
+          <div className="mt-3 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+            <SurveyCreateForm
+              rewards={rewards.filter((reward) => reward.is_active).slice(0, 12).map((reward) => ({
+                id: reward.id,
+                title: reward.title || reward.name || "Prämie",
+              }))}
+              inputClass={inputClass}
+              primaryButtonClass={primaryButtonClass}
+              createRewardSurveyAction={createRewardSurveyAction}
+            />
+
+            <aside className="rounded-xl border border-violet-200/70 bg-violet-50/65 p-3">
+              <p className="text-sm font-semibold text-zinc-900">Letzte Umfragen</p>
+              <div className="mt-2 space-y-2">
+                {surveyRows.length === 0 ? (
+                  <p className="rounded-lg border border-violet-200/70 bg-white/80 px-2.5 py-2 text-xs text-zinc-600">
+                    Noch keine Umfragen erstellt.
+                  </p>
+                ) : (
+                  surveyRows.map((survey) => (
+                    <div key={survey.id} className="rounded-lg border border-violet-200/70 bg-white/85 px-2.5 py-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-xs font-semibold text-zinc-900">{survey.title}</p>
+                        <form action={deleteRewardSurveyAction}>
+                          <input type="hidden" name="survey_id" value={survey.id} />
+                          <button
+                            type="submit"
+                            aria-label="Umfrage löschen"
+                            title="Umfrage löschen"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-rose-300/70 bg-rose-50 text-sm text-rose-700 transition hover:bg-rose-100"
+                          >
+                            🗑
+                          </button>
+                        </form>
+                      </div>
+                      <p className="mt-1 text-[11px] text-zinc-600">
+                        Typ: {survey.survey_type === "preset" ? "Vorgegebene Auswahl" : "Freie Vorschläge"}
+                        {survey.budget_limit_eur ? ` • Budget: ${survey.budget_limit_eur} €` : ""}
+                      </p>
+                      <p className="mt-1 text-[11px] text-zinc-500">
+                        Optionen: {surveyOptionCountBySurvey.get(survey.id) ?? 0} • Antworten: {surveyResponseCountBySurvey.get(survey.id) ?? 0}
+                      </p>
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
+                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
+                            Bearbeiten
+                          </summary>
+                          <form action={updateRewardSurveyAction} className="mt-2 grid gap-1.5">
+                            <input type="hidden" name="survey_id" value={survey.id} />
+                            <label className="text-[11px] text-zinc-600">
+                              Titel
+                              <input
+                                name="survey_title"
+                                defaultValue={survey.title}
+                                className={`${inputClass} mt-1`}
+                                required
+                              />
+                            </label>
+                            <label className="text-[11px] text-zinc-600">
+                              Beschreibung
+                              <textarea
+                                name="survey_description"
+                                defaultValue={survey.description ?? ""}
+                                rows={2}
+                                className={`${inputClass} mt-1`}
+                              />
+                            </label>
+                            {survey.survey_type === "open_budget" ? (
+                              <label className="text-[11px] text-zinc-600">
+                                Budgetlimit in €
+                                <input
+                                  type="number"
+                                  min={1}
+                                  name="budget_limit_eur"
+                                  defaultValue={String(survey.budget_limit_eur ?? "")}
+                                  className={`${inputClass} mt-1`}
+                                />
+                              </label>
+                            ) : null}
+                            <label className="text-[11px] text-zinc-600">
+                              Enddatum
+                              <input
+                                type="datetime-local"
+                                name="survey_ends_at"
+                                defaultValue={
+                                  survey.ends_at
+                                    ? new Date(survey.ends_at).toISOString().slice(0, 16)
+                                    : ""
+                                }
+                                className={`${inputClass} mt-1`}
+                              />
+                            </label>
+                            <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-700">
+                              <input
+                                type="checkbox"
+                                name="is_active"
+                                value="1"
+                                defaultChecked={survey.is_active}
+                              />
+                              Aktiv
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              <button type="submit" className={primaryButtonClass}>
+                                Umfrage speichern
+                              </button>
+                            </div>
+                          </form>
+                        </details>
+
+                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
+                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
+                            Antworten ansehen
+                          </summary>
+                          <div className="mt-2 rounded-lg border border-violet-200/70 bg-white/80 p-2">
+                            {survey.survey_type === "preset" ? (
+                              <div className="space-y-1.5">
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">
+                                  Abstimmung je Option
+                                </p>
+                                {(surveyOptionsBySurvey.get(survey.id) ?? []).length === 0 ? (
+                                  <p className="text-[11px] text-zinc-600">Keine Optionen vorhanden.</p>
+                                ) : (
+                                  (surveyOptionsBySurvey.get(survey.id) ?? []).map((option) => (
+                                    <div
+                                      key={option.id}
+                                      className="flex items-center justify-between rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
+                                    >
+                                      <span className="text-[11px] text-zinc-800">{option.text}</span>
+                                      <span className="rounded bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-800">
+                                        {surveyVoteCountByOptionId.get(option.id) ?? 0}
+                                      </span>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            ) : null}
+
+                            <div className="mt-2 max-h-48 space-y-1.5 overflow-y-auto pr-1">
+                              {(surveyResponsesBySurvey.get(survey.id) ?? []).filter((row) => Boolean(row.note)).length === 0 ? (
+                                <p className="text-[11px] text-zinc-600">
+                                  Noch keine Notizen.
+                                </p>
+                              ) : (
+                                (surveyResponsesBySurvey.get(survey.id) ?? [])
+                                  .filter((row) => Boolean(row.note))
+                                  .map((response) => (
+                                    <div
+                                      key={response.id}
+                                      className="rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
+                                    >
+                                      <p className="text-[11px] font-semibold text-zinc-900">
+                                        {response.referrerName}
+                                      </p>
+                                      <p className="mt-0.5 text-[11px] text-zinc-700">
+                                        {response.note}
+                                      </p>
+                                      <p className="mt-0.5 text-[10px] text-zinc-500">
+                                        {response.createdAt
+                                          ? new Date(response.createdAt).toLocaleString("de-DE")
+                                          : ""}
+                                      </p>
+                                    </div>
+                                  ))
+                              )}
+                            </div>
+                          </div>
+                        </details>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </aside>
+          </div>
+        </details>
       </section>
 
       <section className="relative z-10 space-y-3">
@@ -404,12 +753,14 @@ export default async function AdvisorRewardsPage({
                   )}
                   <div>
                     <p className="text-sm font-medium text-zinc-900">{reward.title || reward.name}</p>
-                    <p className="text-xs text-zinc-600">Punktewert: {reward.points_cost}</p>
-                    <p className="mt-1">
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <span className="rounded bg-violet-100 px-2 py-0.5 text-[11px] font-medium text-violet-800">
+                        {reward.points_cost} Punkte
+                      </span>
                       <span className={reward.is_active ? "rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700" : "rounded bg-zinc-200 px-2 py-0.5 text-[11px] font-medium text-zinc-700"}>
                         {reward.is_active ? "Aktiv" : "Inaktiv"}
                       </span>
-                    </p>
+                    </div>
                     {reward.external_product_url ? (
                       <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex text-xs text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Produktlink öffnen</a>
                     ) : (
@@ -448,19 +799,19 @@ export default async function AdvisorRewardsPage({
                       <label className="md:col-span-2 flex items-start gap-2 text-xs text-zinc-700"><input type="checkbox" name="image_rights_confirmed" value="1" className="mt-0.5" /><span>Ich bestätige die Nutzungsrechte für dieses Bild.</span></label>
                       <div className="md:col-span-2 flex flex-wrap gap-2"><button type="submit" className={subtleButtonClass}>Bild hochladen</button>{reward.image_url ? <button type="submit" formAction={removeRewardImageAction} className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-sm text-red-700 transition-colors hover:bg-red-100">Bild entfernen</button> : null}</div>
                     </form>
+                    {(reward.image_url || reward.external_product_url) ? (
+                      <div className="mt-3 flex flex-wrap gap-3 text-xs">
+                        {reward.image_url ? (
+                          <a href={reward.image_url} target="_blank" rel="noreferrer" className="text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Bild in neuem Tab prüfen</a>
+                        ) : null}
+                        {reward.external_product_url ? (
+                          <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Produktlink prüfen</a>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                 </details>
               </div>
-              {reward.image_url || reward.external_product_url ? (
-                <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50/85 p-3">
-                  <p className="text-xs font-medium text-zinc-700">Link- und Bildprüfung</p>
-                  {reward.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={reward.image_url} alt={reward.title || reward.name || "Prämie"} className="mt-2 h-40 w-full max-w-md rounded-lg object-cover" style={{ objectPosition: `${reward.image_focus_x ?? 50}% ${reward.image_focus_y ?? 50}%` }} />
-                  ) : <p className="mt-2 text-xs text-zinc-600">Keine Bild-URL hinterlegt.</p>}
-                  <div className="mt-2 flex flex-wrap gap-3 text-xs">{reward.image_url ? <a href={reward.image_url} target="_blank" rel="noreferrer" className="text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Bild-URL in neuem Tab prüfen</a> : null}{reward.external_product_url ? <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Produktlink in neuem Tab prüfen</a> : null}</div>
-                </div>
-              ) : null}
               </article>
             ))}
           </div>
@@ -493,7 +844,9 @@ export default async function AdvisorRewardsPage({
             </tbody></table>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
+
+
 

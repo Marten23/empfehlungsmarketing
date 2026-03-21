@@ -81,7 +81,7 @@ export default async function HomePage() {
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-violet-300/45 bg-violet-100/80 text-violet-700">
             <SparklesIcon className="h-4 w-4" />
           </span>
-          Emfielster
+          Tarvo
         </p>
         {user ? (
           <Link
@@ -104,7 +104,7 @@ export default async function HomePage() {
               Empfehlungen endlich strukturiert statt zufällig.
             </h1>
             <p className="mt-4 max-w-3xl text-sm text-zinc-700 md:text-base">
-              Emfielster ist die Empfehlungsplattform für Berater: Sie verwalten
+              Tarvo ist die Empfehlungsplattform für Berater: Sie verwalten
               Empfehlungen, Empfehler, Punkte, Prämien und Einlösungen in einem klaren
               System. So geht kein wertvoller Kontakt mehr verloren.
             </p>
@@ -147,7 +147,7 @@ export default async function HomePage() {
       <section className="relative z-10 rounded-3xl border border-violet-200/55 bg-white/84 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] md:p-6">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-semibold text-zinc-900 md:text-2xl">
-            So sieht der Arbeitsalltag in Emfielster aus
+            So sieht der Arbeitsalltag in Tarvo aus
           </h2>
           <span className="hidden rounded-full border border-violet-300/45 bg-violet-100/75 px-3 py-1 text-xs font-semibold text-violet-700 md:inline-flex">
             Produkt-Mockup
@@ -213,7 +213,7 @@ export default async function HomePage() {
       <section className="relative z-10 rounded-3xl border border-violet-200/55 bg-violet-50/86 p-6 shadow-[0_24px_60px_rgba(5,3,12,0.34)] backdrop-blur-xl md:p-7">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-2xl font-semibold text-zinc-900 md:text-3xl">
-            So unterstützt Emfielster Ihr Wachstum
+            So unterstützt Tarvo Ihr Wachstum
           </h2>
           <span className="hidden rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold text-violet-800 md:inline-flex">
             Produktnutzen

@@ -16,7 +16,7 @@ export function ReferralForm({ action, initialState }: ReferralFormProps) {
   const [state, formAction, isPending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-3">
       <label className="flex flex-col gap-1 text-sm text-zinc-800">
         <span>Vorname / Name</span>
         <input
@@ -51,7 +51,7 @@ export function ReferralForm({ action, initialState }: ReferralFormProps) {
         <span>Notiz (optional)</span>
         <textarea
           name="contact_note"
-          rows={4}
+          rows={3}
           className="rounded border border-zinc-300 bg-white px-3 py-2 text-zinc-900 placeholder:text-zinc-500"
           placeholder="Ich freue mich über einen Rückruf."
         />

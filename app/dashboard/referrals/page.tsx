@@ -15,6 +15,7 @@ import {
   SparklesIcon,
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
+import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
 
 function renderContactName(row: DashboardReferralRow) {
   if (row.contact_name) return row.contact_name;
@@ -149,6 +150,8 @@ export default async function DashboardReferralsPage({
           <div className="hex-node absolute left-44 top-14 h-14 w-14 border border-[#d2adff]/85 bg-[#a374ff]/26" />
         </div>
       </div>
+
+      <AdvisorAreaHeader active="empfehlungen" />
 
       <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">

@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -447,4 +447,273 @@ export async function updateRedemptionStatusAction(formData: FormData) {
   }
 
   redirect("/berater/praemien?updated=1");
+}
+
+export async function createRewardSurveyAction(formData: FormData) {
+  const advisorContext = await getCurrentAdvisorContext();
+  if (!advisorContext) redirect("/berater/login");
+
+  const title = String(formData.get("survey_title") ?? "").trim();
+  const description = String(formData.get("survey_description") ?? "").trim();
+  const surveyType = String(formData.get("survey_type") ?? "preset").trim();
+  const budgetLimitRaw = String(formData.get("budget_limit_eur") ?? "").trim();
+  const endsAtRaw = String(formData.get("survey_ends_at") ?? "").trim();
+  const customOptions = [
+    ...formData
+      .getAll("survey_custom_options[]")
+      .map((value) => String(value).trim())
+      .filter(Boolean),
+    ...String(formData.get("survey_custom_options") ?? "")
+      .split(/\r?\n/)
+      .map((value) => value.trim())
+      .filter(Boolean),
+  ].slice(0, 16);
+  const selectedRewardIds = formData
+    .getAll("survey_reward_ids")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  const budgetLimit =
+    budgetLimitRaw === "" ? null : Number.parseInt(budgetLimitRaw, 10);
+  const endsAt = endsAtRaw ? new Date(endsAtRaw) : null;
+  const isPreset = surveyType === "preset";
+  const isOpenBudget = surveyType === "open_budget";
+
+  if (!title || (!isPreset && !isOpenBudget)) {
+    redirect("/berater/praemien?survey_saved=0&reason=ungueltige-eingaben");
+  }
+  if (isOpenBudget && (!budgetLimit || !Number.isFinite(budgetLimit) || budgetLimit <= 0)) {
+    redirect("/berater/praemien?survey_saved=0&reason=ungueltiges-budgetlimit");
+  }
+  if (isPreset && selectedRewardIds.length === 0 && customOptions.length === 0) {
+    redirect("/berater/praemien?survey_saved=0&reason=keine-optionen");
+  }
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data: surveyRow, error: surveyError } = await supabase
+      .from("reward_surveys")
+      .insert({
+        advisor_id: advisorContext.advisorId,
+        title,
+        description: description || null,
+        survey_type: isPreset ? "preset" : "open_budget",
+        budget_limit_eur: isOpenBudget ? budgetLimit : null,
+        target_scope: "all_active_referrers",
+        is_active: true,
+        ends_at: endsAt ? endsAt.toISOString() : null,
+        created_by_user_id: user?.id ?? null,
+      })
+      .select("id")
+      .single();
+    if (surveyError || !surveyRow?.id) throw surveyError ?? new Error("survey-create-failed");
+
+    const surveyId = String(surveyRow.id);
+
+    const optionRows: Array<{
+      survey_id: string;
+      advisor_id: string;
+      reward_id: string | null;
+      option_text: string;
+      sort_order: number;
+    }> = [];
+
+    if (isPreset) {
+      if (selectedRewardIds.length > 0) {
+        const { data: rewardRows, error: rewardError } = await supabase
+          .from("rewards")
+          .select("id, title, name")
+          .eq("advisor_id", advisorContext.advisorId)
+          .in("id", selectedRewardIds);
+        if (rewardError) throw rewardError;
+        (rewardRows ?? []).forEach((row, index) => {
+          const optionText = String((row as { title?: string; name?: string }).title ?? (row as { name?: string }).name ?? "").trim();
+          if (!optionText) return;
+          optionRows.push({
+            survey_id: surveyId,
+            advisor_id: advisorContext.advisorId,
+            reward_id: String((row as { id: string }).id),
+            option_text: optionText,
+            sort_order: index * 10,
+          });
+        });
+      }
+
+      customOptions.forEach((option, index) => {
+        optionRows.push({
+          survey_id: surveyId,
+          advisor_id: advisorContext.advisorId,
+          reward_id: null,
+          option_text: option,
+          sort_order: 500 + index * 10,
+        });
+      });
+
+      if (optionRows.length === 0) {
+        throw new Error("keine-optionen");
+      }
+
+      const { error: optionsError } = await supabase
+        .from("reward_survey_options")
+        .insert(optionRows);
+      if (optionsError) throw optionsError;
+    }
+
+    const { data: referrerRows, error: referrerError } = await supabase
+      .from("referrers")
+      .select("id")
+      .eq("advisor_id", advisorContext.advisorId)
+      .eq("is_active", true);
+    if (referrerError) throw referrerError;
+
+    const notifications = (referrerRows ?? []).map((row) => ({
+      advisor_id: advisorContext.advisorId,
+      referrer_id: String((row as { id: string }).id),
+      notification_type: "reward_survey",
+      title,
+      message:
+        description ||
+        (isPreset
+          ? "Neue Prämien-Umfrage: Wählen Sie Ihre bevorzugte Belohnung."
+          : `Neue Wunschprämien-Umfrage mit Budgetlimit bis ${budgetLimit} €.`),
+      reward_survey_id: surveyId,
+      is_read: false,
+    }));
+
+    if (notifications.length > 0) {
+      const { error: notificationError } = await supabase
+        .from("referrer_notifications")
+        .insert(notifications);
+      if (notificationError) throw notificationError;
+    }
+
+    revalidatePath("/berater/praemien");
+    revalidatePath("/empfehler/dashboard");
+  } catch (error) {
+    const message = normalizeSupabaseError(error).message;
+    redirect(`/berater/praemien?survey_saved=0&reason=${encodeURIComponent(message)}`);
+  }
+
+  redirect("/berater/praemien?survey_saved=1");
+}
+
+export async function updateRewardSurveyAction(formData: FormData) {
+  const advisorContext = await getCurrentAdvisorContext();
+  if (!advisorContext) redirect("/berater/login");
+
+  const surveyId = String(formData.get("survey_id") ?? "").trim();
+  const title = String(formData.get("survey_title") ?? "").trim();
+  const description = String(formData.get("survey_description") ?? "").trim();
+  const budgetLimitRaw = String(formData.get("budget_limit_eur") ?? "").trim();
+  const endsAtRaw = String(formData.get("survey_ends_at") ?? "").trim();
+  const isActive = String(formData.get("is_active") ?? "1").trim() === "1";
+
+  if (!surveyId || !title) {
+    redirect("/berater/praemien?survey_saved=0&reason=ungueltige-umfrage");
+  }
+
+  const budgetLimit =
+    budgetLimitRaw === "" ? null : Number.parseInt(budgetLimitRaw, 10);
+  const endsAt = endsAtRaw ? new Date(endsAtRaw) : null;
+
+  try {
+    const supabase = await createClient();
+    const { data: surveyRow, error: surveyError } = await supabase
+      .from("reward_surveys")
+      .select("id, survey_type")
+      .eq("id", surveyId)
+      .eq("advisor_id", advisorContext.advisorId)
+      .maybeSingle();
+    if (surveyError) throw surveyError;
+    if (!surveyRow) throw new Error("umfrage-nicht-gefunden");
+
+    const surveyType = String(
+      (surveyRow as { survey_type?: string | null }).survey_type ?? "preset",
+    );
+    if (
+      surveyType === "open_budget" &&
+      (!budgetLimit || !Number.isFinite(budgetLimit) || budgetLimit <= 0)
+    ) {
+      redirect("/berater/praemien?survey_saved=0&reason=ungueltiges-budgetlimit");
+    }
+
+    const { error: updateError } = await supabase
+      .from("reward_surveys")
+      .update({
+        title,
+        description: description || null,
+        budget_limit_eur: surveyType === "open_budget" ? budgetLimit : null,
+        ends_at: endsAt ? endsAt.toISOString() : null,
+        is_active: isActive,
+      })
+      .eq("id", surveyId)
+      .eq("advisor_id", advisorContext.advisorId);
+    if (updateError) throw updateError;
+
+    revalidatePath("/berater/praemien");
+    revalidatePath("/empfehler/dashboard");
+    redirect("/berater/praemien?survey_saved=1");
+  } catch (error) {
+    const message = normalizeSupabaseError(error).message;
+    redirect(`/berater/praemien?survey_saved=0&reason=${encodeURIComponent(message)}`);
+  }
+}
+
+export async function deleteRewardSurveyAction(formData: FormData) {
+  const advisorContext = await getCurrentAdvisorContext();
+  if (!advisorContext) redirect("/berater/login");
+
+  const surveyId = String(formData.get("survey_id") ?? "").trim();
+  if (!surveyId) {
+    redirect("/berater/praemien?survey_saved=0&reason=ungueltige-umfrage");
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("reward_surveys")
+      .delete()
+      .eq("id", surveyId)
+      .eq("advisor_id", advisorContext.advisorId);
+    if (error) throw error;
+
+    revalidatePath("/berater/praemien");
+    revalidatePath("/empfehler/dashboard");
+    redirect("/berater/praemien?survey_saved=1");
+  } catch (error) {
+    const message = normalizeSupabaseError(error).message;
+    redirect(`/berater/praemien?survey_saved=0&reason=${encodeURIComponent(message)}`);
+  }
+}
+
+export async function setRewardSurveyActiveAction(formData: FormData) {
+  const advisorContext = await getCurrentAdvisorContext();
+  if (!advisorContext) redirect("/berater/login");
+
+  const surveyId = String(formData.get("survey_id") ?? "").trim();
+  const isActive = String(formData.get("is_active") ?? "").trim() === "1";
+  if (!surveyId) {
+    redirect("/berater/praemien?survey_saved=0&reason=ungueltige-umfrage");
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("reward_surveys")
+      .update({ is_active: isActive })
+      .eq("id", surveyId)
+      .eq("advisor_id", advisorContext.advisorId);
+    if (error) throw error;
+
+    revalidatePath("/berater/praemien");
+    revalidatePath("/empfehler/dashboard");
+    redirect("/berater/praemien?survey_saved=1");
+  } catch (error) {
+    const message = normalizeSupabaseError(error).message;
+    redirect(`/berater/praemien?survey_saved=0&reason=${encodeURIComponent(message)}`);
+  }
 }

@@ -1,4 +1,4 @@
-import type { ComponentType, SVGProps } from "react";
+﻿import type { ComponentType, SVGProps } from "react";
 import { CopyLinkButton } from "@/app/dashboard/referrers/copy-link-button";
 
 type LinkToolCardProps = {
@@ -57,15 +57,9 @@ export function LinkToolCard({
           idleLabel="Link kopieren"
           copiedLabel="Link kopiert"
           className="rounded border border-violet-300/55 bg-white px-3 py-1 text-xs font-medium text-violet-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-violet-100 hover:text-violet-900 hover:ring-1 hover:ring-violet-400/70 hover:shadow-[0_12px_22px_rgba(76,29,149,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-        />
-        <CopyLinkButton
-          value={code}
-          idleLabel="Code kopieren"
-          copiedLabel="Code kopiert"
-          className="rounded border border-violet-300/45 bg-violet-100/80 px-3 py-1 text-xs font-medium text-violet-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-200/90 hover:ring-1 hover:ring-violet-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-        />
-      </div>
+        />      </div>
     </article>
   );
 }
+
 

@@ -14,10 +14,9 @@ import {
 } from "@/app/empfehler/dashboard/components/icons";
 import {
   markOwnContractActivatedAction,
-  setLevelThresholdsAction,
-  setPointsAwardModeAction,
   setReferrerActivationModeAction,
 } from "@/app/dashboard/advisors/actions";
+import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
 
 type AdvisorGrowthRow = {
   id: string;
@@ -30,8 +29,6 @@ type DashboardAdvisorsPageProps = {
   searchParams: Promise<{
     activated?: string;
     settings?: string;
-    points?: string;
-    levels?: string;
     reason?: string;
   }>;
 };
@@ -44,12 +41,12 @@ export default async function DashboardAdvisorsPage({
 
   if (!advisorContext) {
     return (
-      <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 p-6">
-        <h1 className="text-2xl font-semibold">Empfehlungsprogramm fÃ¼r Berater</h1>
+      <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 p-6">
+        <h1 className="text-2xl font-semibold">Empfehlungsprogramm für Berater</h1>
         <p className="rounded bg-zinc-100 px-3 py-2 text-sm text-zinc-700">
           Kein Berater-Kontext gefunden.
         </p>
-      </div>
+      </main>
     );
   }
 
@@ -62,12 +59,6 @@ export default async function DashboardAdvisorsPage({
   let accountActivatedAt: string | null = null;
   let isActive = false;
   let autoActivateReferrers = false;
-  let autoAwardPointsOnClose = true;
-  let defaultPointsOnClose = 100;
-  let levelBronzePoints = 100;
-  let levelSilverPoints = 200;
-  let levelGoldPoints = 500;
-  let levelPlatinumPoints = 1000;
 
   try {
     const { data: advisorCodesRow, error: advisorCodesError } = await supabase
@@ -99,9 +90,7 @@ export default async function DashboardAdvisorsPage({
 
     const { data: settingsRow, error: settingsError } = await supabase
       .from("advisor_settings")
-      .select(
-        "auto_activate_referrers, auto_award_points_on_referral_close, points_per_successful_referral, level_bronze_points, level_silver_points, level_gold_points, level_platinum_points",
-      )
+      .select("auto_activate_referrers")
       .eq("advisor_id", advisorContext.advisorId)
       .maybeSingle();
 
@@ -112,42 +101,6 @@ export default async function DashboardAdvisorsPage({
       autoActivateReferrers =
         (settingsRow as { auto_activate_referrers?: boolean } | null)
           ?.auto_activate_referrers ?? false;
-      autoAwardPointsOnClose =
-        (
-          settingsRow as {
-            auto_award_points_on_referral_close?: boolean;
-          } | null
-        )?.auto_award_points_on_referral_close ?? true;
-      defaultPointsOnClose =
-        (
-          settingsRow as {
-            points_per_successful_referral?: number;
-          } | null
-        )?.points_per_successful_referral ?? 100;
-      levelBronzePoints =
-        (
-          settingsRow as {
-            level_bronze_points?: number;
-          } | null
-        )?.level_bronze_points ?? 100;
-      levelSilverPoints =
-        (
-          settingsRow as {
-            level_silver_points?: number;
-          } | null
-        )?.level_silver_points ?? 200;
-      levelGoldPoints =
-        (
-          settingsRow as {
-            level_gold_points?: number;
-          } | null
-        )?.level_gold_points ?? 500;
-      levelPlatinumPoints =
-        (
-          settingsRow as {
-            level_platinum_points?: number;
-          } | null
-        )?.level_platinum_points ?? 1000;
     }
 
     const { data: rows, error } = await supabase
@@ -183,8 +136,6 @@ export default async function DashboardAdvisorsPage({
 
   const panelClass =
     "relative z-10 rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]";
-  const inputClass =
-    "rounded-lg border border-violet-300/55 bg-white px-2 py-1 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 hover:border-violet-400/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200/80";
   const buttonClass =
     "rounded-lg border border-violet-300/50 bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 hover:shadow-[0_12px_20px_rgba(76,29,149,0.25)]";
 
@@ -205,6 +156,8 @@ export default async function DashboardAdvisorsPage({
         </div>
       </div>
 
+      <AdvisorAreaHeader active="advisors" />
+
       <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
@@ -215,7 +168,7 @@ export default async function DashboardAdvisorsPage({
               Wachstumsbereich
             </span>
             <h1 className="text-2xl font-semibold text-zinc-900 md:text-3xl">
-              Empfehlungsprogramm fÃ¼r Berater
+              Empfehlungsprogramm für Berater
             </h1>
             <p className="text-sm text-zinc-700 md:text-base">
               Laden Sie neue Berater ein und profitieren Sie von Freimonaten und
@@ -242,7 +195,7 @@ export default async function DashboardAdvisorsPage({
             href="/berater/dashboard"
             className="inline-flex items-center gap-2 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
           >
-            ZurÃ¼ck zum Dashboard
+            Zurück zum Dashboard
           </Link>
           <Link
             href="/berater/empfehlungen"
@@ -254,7 +207,9 @@ export default async function DashboardAdvisorsPage({
         </div>
       </section>
 
-      <section className="relative z-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-4 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-5">
+      <div className="space-y-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className={panelClass}>
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">
             Erfolgreich geworbene Berater
@@ -263,7 +218,7 @@ export default async function DashboardAdvisorsPage({
         </article>
         <article className={panelClass}>
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">
-            NÃ¤chstes Ziel
+            Nächstes Ziel
           </p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">
             {nextGoal > 0 ? nextGoal : 0}
@@ -271,7 +226,7 @@ export default async function DashboardAdvisorsPage({
           <p className="mt-1 text-xs text-zinc-600">
             {nextGoal > 0
               ? `Noch ${nextGoal} erfolgreiche Berater-Empfehlungen bis 50 % Lifetime Rabatt`
-              : "Top: HÃ¶chste Vorteil-Stufe erreicht"}
+              : "Top: Höchste Vorteil-Stufe erreicht"}
           </p>
         </article>
         <article className={panelClass}>
@@ -310,9 +265,9 @@ export default async function DashboardAdvisorsPage({
           Programmvorteile
         </h2>
         <ul className="mt-3 space-y-2 text-sm text-zinc-700">
-          <li>â€¢ FÃ¼r 1 bis 9 erfolgreiche Berater-Empfehlungen erhalten Sie jeweils 1 Gratismonat.</li>
-          <li>â€¢ Ab 10 erfolgreichen Berater-Empfehlungen erhalten Sie 50 % Lifetime Rabatt auf Ihr Monatsabo.</li>
-          <li>â€¢ Geworbene Berater erhalten 100 â‚¬ Rabatt auf die EinrichtungsgebÃ¼hr.</li>
+          <li>• Für 1 bis 9 erfolgreiche Berater-Empfehlungen erhalten Sie jeweils 1 Gratismonat.</li>
+          <li>• Ab 10 erfolgreichen Berater-Empfehlungen erhalten Sie 50 % Lifetime Rabatt auf Ihr Monatsabo.</li>
+          <li>• Geworbene Berater erhalten 100 € Rabatt auf die Einrichtungsgebühr.</li>
         </ul>
       </section>
 
@@ -365,11 +320,11 @@ export default async function DashboardAdvisorsPage({
         </p>
       </section>
 
-      <section className="relative z-10 grid gap-4 xl:grid-cols-2">
+      <section className="grid gap-4">
         <article className={panelClass}>
           <h3 className="text-sm font-semibold text-zinc-900">Empfehler-Freigabe</h3>
           <p className="mt-1 text-xs text-zinc-600">
-            Empfehlung fÃ¼r Produktion: Manuelle Freigabe reduziert Spam und Missbrauch.
+            Empfehlung für Produktion: Manuelle Freigabe reduziert Spam und Missbrauch.
           </p>
 
           {params.settings === "1" ? (
@@ -397,118 +352,9 @@ export default async function DashboardAdvisorsPage({
             </button>
           </form>
         </article>
-
-        <article className={panelClass}>
-          <h3 className="text-sm font-semibold text-zinc-900">Punktevergabe bei Abschluss</h3>
-          <p className="mt-1 text-xs text-zinc-600">
-            Aktueller Modus: {autoAwardPointsOnClose ? `Automatisch (${defaultPointsOnClose} Punkte)` : "Manuell"}
-          </p>
-
-          {params.points === "1" ? (
-            <p className="mt-3 rounded bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-              Punkte-Modus gespeichert.
-            </p>
-          ) : null}
-          {params.points === "0" ? (
-            <p className="mt-3 rounded bg-red-50 px-3 py-2 text-xs text-red-700">
-              Punkte-Modus konnte nicht gespeichert werden.
-              {params.reason ? ` Grund: ${params.reason}` : ""}
-            </p>
-          ) : null}
-
-          <form action={setPointsAwardModeAction} className="mt-3 space-y-2">
-            <input
-              type="hidden"
-              name="auto_award_points_on_referral_close"
-              value={autoAwardPointsOnClose ? "0" : "1"}
-            />
-            <label className="flex flex-col gap-1 text-xs text-zinc-600">
-              Standardpunkte bei Abschluss
-              <input
-                type="number"
-                name="points_per_successful_referral"
-                min={1}
-                defaultValue={defaultPointsOnClose}
-                className={`${inputClass} w-36`}
-              />
-            </label>
-            <button type="submit" className={buttonClass}>
-              {autoAwardPointsOnClose
-                ? "Auf manuelle Punktevergabe umstellen"
-                : "Auf automatische Punktevergabe umstellen"}
-            </button>
-          </form>
-        </article>
       </section>
 
-      <section className="relative z-10 grid gap-4 xl:grid-cols-[2fr_1fr]">
-        <article className={panelClass}>
-          <h3 className="text-sm font-semibold text-zinc-900">Level-Schwellen fÃ¼r Empfehler</h3>
-          <p className="mt-1 text-xs text-zinc-600">
-            Vor Bronze hat ein Empfehler keinen Titel. Werte mÃ¼ssen aufsteigend sein.
-          </p>
-
-          {params.levels === "1" ? (
-            <p className="mt-3 rounded bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-              Level-Schwellen gespeichert.
-            </p>
-          ) : null}
-          {params.levels === "0" ? (
-            <p className="mt-3 rounded bg-red-50 px-3 py-2 text-xs text-red-700">
-              Level-Schwellen konnten nicht gespeichert werden.
-              {params.reason ? ` Grund: ${params.reason}` : ""}
-            </p>
-          ) : null}
-
-          <form action={setLevelThresholdsAction} className="mt-3 grid gap-3 sm:grid-cols-4">
-            <label className="flex flex-col gap-1 text-xs text-zinc-600">
-              Bronze ab
-              <input
-                type="number"
-                name="level_bronze_points"
-                min={1}
-                defaultValue={levelBronzePoints}
-                className={inputClass}
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-xs text-zinc-600">
-              Silber ab
-              <input
-                type="number"
-                name="level_silver_points"
-                min={2}
-                defaultValue={levelSilverPoints}
-                className={inputClass}
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-xs text-zinc-600">
-              Gold ab
-              <input
-                type="number"
-                name="level_gold_points"
-                min={2}
-                defaultValue={levelGoldPoints}
-                className={inputClass}
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-xs text-zinc-600">
-              Platin ab
-              <input
-                type="number"
-                name="level_platinum_points"
-                min={3}
-                defaultValue={levelPlatinumPoints}
-                className={inputClass}
-              />
-            </label>
-            <div className="sm:col-span-4">
-              <button type="submit" className={buttonClass}>
-                Level-Schwellen speichern
-              </button>
-            </div>
-          </form>
-        </article>
-
+      <section className="grid gap-4">
         <article className={panelClass}>
           <h3 className="text-sm font-semibold text-zinc-900">Vertragsstatus (eigener Berater)</h3>
           <p className="mt-1 text-xs text-zinc-600">
@@ -550,7 +396,7 @@ export default async function DashboardAdvisorsPage({
       <section className={panelClass}>
         <h3 className="text-sm font-semibold text-zinc-900">Neu geworbene Berater</h3>
         <p className="mt-1 text-xs text-zinc-600">
-          Ãœbersicht der erfolgreichen und aktiven Berater-Empfehlungen.
+          Übersicht der erfolgreichen und aktiven Berater-Empfehlungen.
         </p>
 
         {successfulInvites.length > 0 ? (
@@ -573,9 +419,11 @@ export default async function DashboardAdvisorsPage({
 
         {loadError ? (
           <p className="mt-3 rounded bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
-            Hinweis: Growth-Daten derzeit nicht vollstÃ¤ndig verfÃ¼gbar: {loadError}
+            Hinweis: Growth-Daten derzeit nicht vollständig verfügbar: {loadError}
           </p>
         ) : null}
+      </section>
+      </div>
       </section>
     </main>
   );

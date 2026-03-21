@@ -13,6 +13,7 @@ import {
   SparklesIcon,
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
+import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
 
 function getDisplayName(firstName: string, lastName: string) {
   return `${firstName} ${lastName}`.trim();
@@ -37,6 +38,7 @@ export default async function DashboardReferrersPage({
     string,
     { total: number; successful: number }
   >();
+  const pointsByReferrer = new Map<string, number>();
 
   try {
     const supabase = await createClient();
@@ -55,6 +57,21 @@ export default async function DashboardReferrersPage({
       if (referral.status === "abschluss") prev.successful += 1;
       referralStatsByReferrer.set(referral.referrer_id, prev);
     }
+
+    const { data: pointRows, error: pointsError } = await supabase
+      .from("points_transactions")
+      .select("referrer_id, points")
+      .eq("advisor_id", advisorContext.advisorId);
+    if (pointsError) throw pointsError;
+
+    for (const row of pointRows ?? []) {
+      const referrerId = (row as { referrer_id?: string | null }).referrer_id;
+      const points = Number((row as { points?: number | null }).points ?? 0);
+      if (!referrerId || !Number.isFinite(points)) continue;
+      const prev = pointsByReferrer.get(referrerId) ?? 0;
+      // "Gesammelte Punkte" = nur positive Gutschriften.
+      pointsByReferrer.set(referrerId, prev + (points > 0 ? points : 0));
+    }
   } catch (error) {
     loadError = normalizeSupabaseError(error).message;
   }
@@ -66,6 +83,18 @@ export default async function DashboardReferrersPage({
     const stats = referralStatsByReferrer.get(row.id);
     return (stats?.successful ?? 0) > 0;
   }).length;
+  const overallTotalReferrals = rows.reduce((sum, row) => {
+    const stats = referralStatsByReferrer.get(row.id);
+    return sum + (stats?.total ?? 0);
+  }, 0);
+  const overallSuccessfulReferrals = rows.reduce((sum, row) => {
+    const stats = referralStatsByReferrer.get(row.id);
+    return sum + (stats?.successful ?? 0);
+  }, 0);
+  const overallConversionRate =
+    overallTotalReferrals > 0
+      ? Math.round((overallSuccessfulReferrals / overallTotalReferrals) * 100)
+      : 0;
 
   return (
     <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
@@ -84,6 +113,8 @@ export default async function DashboardReferrersPage({
         </div>
       </div>
 
+      <AdvisorAreaHeader active="referrers" />
+
       <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
@@ -95,7 +126,7 @@ export default async function DashboardReferrersPage({
             </span>
             <h1 className="text-2xl font-semibold text-zinc-900 md:text-3xl">Empfehler</h1>
             <p className="text-sm text-zinc-700 md:text-base">
-              Verwalten Sie Ihre Empfehler und behalten Sie AktivitÃ¤t,
+              Verwalten Sie Ihre Empfehler und behalten Sie Aktivität,
               Empfehlungen und Status im Blick.
             </p>
           </div>
@@ -106,7 +137,7 @@ export default async function DashboardReferrersPage({
               Hinweis
             </p>
             <p className="mt-1 max-w-xs text-sm text-zinc-700">
-              Ãœber den Kontakt-Empfehlungslink kÃ¶nnen Empfehler neue Kontakte
+              Über den Kontakt-Empfehlungslink können Empfehler neue Kontakte
               direkt erfassen.
             </p>
           </div>
@@ -117,7 +148,7 @@ export default async function DashboardReferrersPage({
             href="/berater/dashboard"
             className="inline-flex items-center gap-2 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
           >
-            ZurÃ¼ck zum Dashboard
+            Zurück zum Dashboard
           </Link>
           <Link
             href="/berater/empfehlungen"
@@ -129,7 +160,7 @@ export default async function DashboardReferrersPage({
         </div>
       </section>
 
-      <section className="relative z-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="relative z-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Empfehler gesamt</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{rows.length}</p>
@@ -145,6 +176,10 @@ export default async function DashboardReferrersPage({
         <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Mit Erfolgen</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{withSuccessCount}</p>
+        </article>
+        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Conversion-Rate</p>
+          <p className="mt-2 text-3xl font-semibold text-violet-800">{overallConversionRate}%</p>
         </article>
       </section>
 
@@ -172,9 +207,9 @@ export default async function DashboardReferrersPage({
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
               <BookIcon className="h-4 w-4" />
             </span>
-            Empfehler-Ãœbersicht
+            Empfehler-Übersicht
           </h2>
-          <span className="text-xs text-zinc-600">{rows.length} EintrÃ¤ge</span>
+          <span className="text-xs text-zinc-600">{rows.length} Einträge</span>
         </div>
 
         {loadError ? (
@@ -191,14 +226,15 @@ export default async function DashboardReferrersPage({
                 <th className="px-3 py-2">Kontakt</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Empfehlungen</th>
-                <th className="px-3 py-2">Erfolgreich</th>
+                <th className="px-3 py-2">Conversion</th>
+                <th className="px-3 py-2">Gesammelte Punkte</th>
                 <th className="px-3 py-2">Kontakt-Empfehlungslink</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-violet-100">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-zinc-500">
+                  <td colSpan={7} className="px-3 py-8 text-center text-zinc-500">
                     Noch keine Empfehler vorhanden.
                   </td>
                 </tr>
@@ -214,6 +250,11 @@ export default async function DashboardReferrersPage({
                     total: 0,
                     successful: 0,
                   };
+                  const conversionRate =
+                    stats.total > 0
+                      ? Math.round((stats.successful / stats.total) * 100)
+                      : 0;
+                  const collectedPoints = pointsByReferrer.get(row.id) ?? 0;
 
                   return (
                     <tr
@@ -237,7 +278,7 @@ export default async function DashboardReferrersPage({
                               : "bg-zinc-100 text-zinc-700 ring-zinc-200"
                           }`}
                         >
-                          {row.is_active ? "Aktiv" : "In PrÃ¼fung"}
+                          {row.is_active ? "Aktiv" : "In Prüfung"}
                         </span>
                         {!row.is_active ? (
                           <form action={approveReferrerAction} className="mt-2">
@@ -255,19 +296,29 @@ export default async function DashboardReferrersPage({
                           </form>
                         ) : null}
                       </td>
-                      <td className="px-3 py-3 text-zinc-900">{stats.total}</td>
                       <td className="px-3 py-3">
-                        <span className="font-semibold text-emerald-700">
-                          {stats.successful}
+                        <p className="font-semibold text-zinc-900">{stats.total}</p>
+                        <p className="text-xs text-zinc-500">{stats.successful} erfolgreich</p>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span
+                          className={`inline-flex rounded px-2 py-0.5 text-xs font-semibold ring-1 ${
+                            conversionRate >= 50
+                              ? "bg-emerald-100 text-emerald-800 ring-emerald-200"
+                              : conversionRate >= 20
+                                ? "bg-amber-100 text-amber-800 ring-amber-200"
+                                : "bg-zinc-100 text-zinc-700 ring-zinc-200"
+                          }`}
+                        >
+                          {conversionRate}%
                         </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="font-semibold text-violet-800">{collectedPoints}</span>
                       </td>
                       <td className="px-3 py-3 text-zinc-700">
                         <p className="text-[11px] uppercase tracking-wide text-zinc-500">Für neue Kontakte</p>
                         <p className="mt-1 break-all text-xs">{link}</p>
-                        <p className="mt-2 text-[11px] text-zinc-500">Kontakt-Code:</p>
-                        <p className="mt-1 inline-flex rounded-md border border-violet-200/80 bg-violet-50 px-2 py-1 font-mono text-xs font-semibold text-violet-800">
-                          {shareCode}
-                        </p>
                         <p className="mt-2 text-[11px] text-zinc-500">
                           Über diesen Link kann sich ein neuer Kontakt direkt registrieren.
                         </p>
@@ -277,12 +328,6 @@ export default async function DashboardReferrersPage({
                             idleLabel="Link kopieren"
                             copiedLabel="Link kopiert"
                             className="rounded border border-violet-300/55 bg-white px-3 py-1 text-xs font-medium text-violet-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-violet-100 hover:text-violet-900 hover:ring-1 hover:ring-violet-400/70 hover:shadow-[0_12px_22px_rgba(76,29,149,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                          />
-                          <CopyLinkButton
-                            value={shareCode}
-                            idleLabel="Code kopieren"
-                            copiedLabel="Code kopiert"
-                            className="rounded border border-violet-300/45 bg-violet-100/80 px-3 py-1 text-xs font-medium text-violet-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-200/90 hover:ring-1 hover:ring-violet-400/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                           />
                         </div>
                       </td>

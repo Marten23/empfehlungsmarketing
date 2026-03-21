@@ -1,55 +1,32 @@
-import { getCurrentUser } from "@/lib/auth/auth";
-import Link from "next/link";
+﻿import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAdvisorContext } from "@/lib/auth/advisor";
 import { listDashboardReferrals } from "@/lib/queries/referrals";
 import { listReferrersForAdvisor } from "@/lib/queries/referrers";
 import { listRewardRedemptionsForAdvisor } from "@/lib/queries/rewards";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
-import type { ComponentType, SVGProps } from "react";
 import {
   ArrowUpRightIcon,
   BoltIcon,
-  BookIcon,
-  GiftIcon,
-  SparklesIcon,
   TrophyIcon,
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
+import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
+import { PodiumRanklist } from "@/app/empfehler/dashboard/components/podium-ranklist";
 
-type QuickAction = {
-  href: string;
-  title: string;
-  description: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
+type LeaderboardEntry = {
+  referrerId: string;
+  name: string;
+  points: number;
+  avatarUrl: string | null;
 };
 
-const quickActions: QuickAction[] = [
-  {
-    href: "/berater/empfehlungen",
-    title: "Empfehlungen bearbeiten",
-    description: "Status prüfen, Abschlüsse markieren und Punkte vergeben.",
-    icon: BookIcon,
-  },
-  {
-    href: "/berater/praemien",
-    title: "Prämien verwalten",
-    description: "Belohnungen pflegen und Einlösungen strukturiert steuern.",
-    icon: GiftIcon,
-  },
-  {
-    href: "/berater/dashboard/referrers",
-    title: "Empfehler anzeigen",
-    description: "Aktive und neue Empfehler im Blick behalten.",
-    icon: UsersIcon,
-  },
-  {
-    href: "/berater/dashboard/advisors",
-    title: "Empfehlungsprogramm",
-    description: "Berater- und Empfehler-Einladungslinks verwalten.",
-    icon: SparklesIcon,
-  },
-];
+function formatReferrerName(firstName: string, lastName: string) {
+  const cleanFirst = firstName.trim() || "Empfehler";
+  const cleanLast = lastName.trim();
+  if (!cleanLast) return cleanFirst;
+  return `${cleanFirst} ${cleanLast[0]}.`;
+}
 
 function getReferralName(
   row: Awaited<ReturnType<typeof listDashboardReferrals>>[number],
@@ -79,7 +56,6 @@ function statusLabel(status: string) {
 }
 
 export default async function DashboardPage() {
-  const { user, role } = await getCurrentUser();
 
   let referralCount = 0;
   let openCount = 0;
@@ -92,6 +68,7 @@ export default async function DashboardPage() {
   let latestOpenRedemptions: Awaited<
     ReturnType<typeof listRewardRedemptionsForAdvisor>
   > = [];
+  let leaderboard: LeaderboardEntry[] = [];
   let loadError: string | null = null;
 
   try {
@@ -112,6 +89,48 @@ export default async function DashboardPage() {
       );
       pendingReferrerCount = referrerRows.filter((row) => !row.is_active).length;
       activeReferrerCount = referrerRows.filter((row) => row.is_active).length;
+
+      const pointsByReferrer = new Map<string, number>();
+      const { data: allPointsRows, error: allPointsError } = await supabase
+        .from("points_transactions")
+        .select("referrer_id, points")
+        .eq("advisor_id", advisorContext.advisorId);
+      if (allPointsError) throw allPointsError;
+
+      for (const row of allPointsRows ?? []) {
+        const referrerId = String(row.referrer_id ?? "");
+        if (!referrerId) continue;
+        const points = Number(row.points ?? 0);
+        if (points <= 0) continue;
+        pointsByReferrer.set(referrerId, (pointsByReferrer.get(referrerId) ?? 0) + points);
+      }
+
+      const profileIds = referrerRows
+        .map((row) => row.user_id)
+        .filter((value): value is string => Boolean(value));
+      const avatarByUserId = new Map<string, string | null>();
+      if (profileIds.length > 0) {
+        const { data: profileRows } = await supabase
+          .from("profiles")
+          .select("user_id, avatar_url")
+          .in("user_id", profileIds);
+        for (const row of (profileRows ?? []) as Array<{ user_id: string; avatar_url: string | null }>) {
+          avatarByUserId.set(row.user_id, row.avatar_url ?? null);
+        }
+      }
+
+      leaderboard = referrerRows
+        .filter((row) => row.is_active || row.id)
+        .map((row) => ({
+          referrerId: row.id,
+          name: formatReferrerName(row.first_name, row.last_name),
+          points: pointsByReferrer.get(row.id) ?? 0,
+          avatarUrl: row.user_id ? (avatarByUserId.get(row.user_id) ?? null) : null,
+        }))
+        .sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          return a.name.localeCompare(b.name, "de-DE");
+        });
 
       const redemptions = await listRewardRedemptionsForAdvisor(
         supabase,
@@ -142,6 +161,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      <AdvisorAreaHeader active="dashboard" />
+
       <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
@@ -162,22 +183,25 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-violet-200/65 bg-violet-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-violet-700">
-              <SparklesIcon className="h-4 w-4" />
-              Konto
-            </p>
-            <p className="mt-1 text-sm font-medium text-zinc-800">{user?.email ?? "-"}</p>
-            <p className="mt-1 text-xs text-zinc-600">Rolle: {role ?? "nicht gesetzt"}</p>
-            <form action="/auth/logout" method="post" className="mt-3">
-              <button
-                type="submit"
-                className="rounded-xl border border-white/55 bg-white/88 px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-50 hover:text-zinc-900 hover:ring-1 hover:ring-violet-300/55 hover:shadow-[0_14px_30px_rgba(76,29,149,0.2)]"
-              >
-                Abmelden
-              </button>
-            </form>
-          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Offene Empfehlungen</p>
+            <p className="mt-2 text-3xl font-semibold text-zinc-900">{openCount}</p>
+          </article>
+          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Erfolgreiche Empfehlungen</p>
+            <p className="mt-2 text-3xl font-semibold text-emerald-700">{closingCount}</p>
+          </article>
+          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Aktive Empfehler</p>
+            <p className="mt-2 text-3xl font-semibold text-zinc-900">{activeReferrerCount}</p>
+          </article>
+          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Offene Einlösungen</p>
+            <p className="mt-2 text-3xl font-semibold text-zinc-900">{openRedemptionCount}</p>
+          </article>
         </div>
       </section>
 
@@ -204,165 +228,139 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
-      <section className="relative z-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Offene Empfehlungen</p>
-          <p className="mt-2 text-3xl font-semibold text-zinc-900">{openCount}</p>
-        </article>
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Erfolgreiche Empfehlungen</p>
-          <p className="mt-2 text-3xl font-semibold text-emerald-700">{closingCount}</p>
-        </article>
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Aktive Empfehler</p>
-          <p className="mt-2 text-3xl font-semibold text-zinc-900">{activeReferrerCount}</p>
-        </article>
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Offene Einlösungen</p>
-          <p className="mt-2 text-3xl font-semibold text-zinc-900">{openRedemptionCount}</p>
-        </article>
-      </section>
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-4 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-5">
+        <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-3xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_0%,rgba(255,230,170,0.18),transparent_42%),linear-gradient(165deg,rgba(34,28,22,0.95),rgba(17,14,12,0.96))] p-3 shadow-[inset_0_1px_0_rgba(255,240,210,0.14),0_24px_46px_rgba(10,8,6,0.58)] md:p-4">
+            <div className="flex justify-center">
+              <div className="inline-flex items-center gap-2 rounded-b-2xl rounded-t-xl border border-amber-300/35 bg-[linear-gradient(180deg,rgba(253,214,135,0.95),rgba(228,172,69,0.94))] px-4 py-1.5 shadow-[0_10px_24px_rgba(188,132,40,0.33)]">
+                <TrophyIcon className="h-4 w-4 text-white" />
+                <span className="text-xs font-semibold tracking-[0.2em] text-amber-950">
+                  RANGLISTE DEINER EMPFEHLER
+                </span>
+              </div>
+            </div>
+            <div className="mt-3">
+              <PodiumRanklist
+                entries={leaderboard}
+                backMode="all"
+                backTitle="Alle Empfehler"
+              />
+            </div>
+          </div>
 
-      <section className="relative z-10 rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-        <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
-            <BookIcon className="h-4 w-4" />
-          </span>
-          Schnellzugriffe
-        </h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link
-                key={action.href}
-                href={action.href}
-                className="group rounded-xl border border-violet-200/60 bg-violet-50/70 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300/70 hover:bg-violet-100/70 hover:shadow-[0_16px_30px_rgba(76,29,149,0.18)]"
-              >
-                <p className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-violet-300/45 bg-violet-100 text-violet-700 transition-colors group-hover:bg-violet-200">
-                    <Icon className="h-4 w-4" />
+          <div className="grid gap-4">
+            <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+                    <UsersIcon className="h-4 w-4" />
                   </span>
-                  {action.title}
-                </p>
-                <p className="mt-1 text-xs text-zinc-600">{action.description}</p>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="relative z-10 grid gap-6 xl:grid-cols-2">
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
-                <UsersIcon className="h-4 w-4" />
-              </span>
-              Neueste Empfehlungen
-            </h2>
-            <Link
-              href="/berater/empfehlungen"
-              className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-colors hover:text-violet-900"
-            >
-              Alle ansehen
-              <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-          </div>
-          <div className="max-h-[340px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
-            <table className="min-w-full text-sm">
-              <thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur">
-                <tr>
-                  <th className="px-3 py-2">Kontakt</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2 text-right">Punkte</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-violet-100">
-                {latestReferrals.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="px-3 py-6 text-zinc-500">
-                      Noch keine Empfehlungen vorhanden.
-                    </td>
-                  </tr>
-                ) : (
-                  latestReferrals.map((row) => (
-                    <tr key={row.id} className="transition-colors duration-200 hover:bg-violet-100/65">
-                      <td className="px-3 py-2 text-zinc-900">{getReferralName(row)}</td>
-                      <td className="px-3 py-2">
-                        <span className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${statusBadgeClass(row.status)}`}>
-                          {statusLabel(row.status)}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        {row.awarded_points !== null ? (
-                          <span className="font-semibold text-emerald-700">+{row.awarded_points}</span>
-                        ) : (
-                          <span className="text-zinc-500">-</span>
-                        )}
-                      </td>
+                  Neueste Empfehlungen
+                </h2>
+                <Link
+                  href="/berater/empfehlungen"
+                  className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-colors hover:text-violet-900"
+                >
+                  Alle ansehen
+                  <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
+              </div>
+              <div className="max-h-[240px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
+                <table className="min-w-full text-sm">
+                  <thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur">
+                    <tr>
+                      <th className="px-3 py-2">Kontakt</th>
+                      <th className="px-3 py-2">Status</th>
+                      <th className="px-3 py-2 text-right">Punkte</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
-                <TrophyIcon className="h-4 w-4" />
-              </span>
-              Offene Einlösungen
-            </h2>
-            <Link
-              href="/berater/praemien"
-              className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-colors hover:text-violet-900"
-            >
-              Zu Prämien & Einlösungen
-              <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-          </div>
-          <div className="max-h-[340px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
-            <table className="min-w-full text-sm">
-              <thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur">
-                <tr>
-                  <th className="px-3 py-2">Empfehler</th>
-                  <th className="px-3 py-2">Prämie</th>
-                  <th className="px-3 py-2 text-right">Punkte</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-violet-100">
-                {latestOpenRedemptions.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="px-3 py-6 text-zinc-500">
-                      Keine offenen Einlösungen.
-                    </td>
-                  </tr>
-                ) : (
-                  latestOpenRedemptions.map((row) => {
-                    const referrerName = row.referrer
-                      ? `${row.referrer.first_name} ${row.referrer.last_name}`.trim()
-                      : "-";
-                    const rewardName =
-                      row.reward?.title || row.reward?.name || "Unbekannte Prämie";
-                    return (
-                      <tr key={row.id} className="transition-colors duration-200 hover:bg-violet-100/65">
-                        <td className="px-3 py-2 text-zinc-900">{referrerName || "-"}</td>
-                        <td className="px-3 py-2 text-zinc-700">{rewardName}</td>
-                        <td className="px-3 py-2 text-right font-semibold text-zinc-900">
-                          {row.requested_points_cost}
+                  </thead>
+                  <tbody className="divide-y divide-violet-100">
+                    {latestReferrals.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-3 py-6 text-zinc-500">
+                          Noch keine Empfehlungen vorhanden.
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                    ) : (
+                      latestReferrals.map((row) => (
+                        <tr key={row.id} className="transition-colors duration-200 hover:bg-violet-100/65">
+                          <td className="px-3 py-2 text-zinc-900">{getReferralName(row)}</td>
+                          <td className="px-3 py-2">
+                            <span className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${statusBadgeClass(row.status)}`}>
+                              {statusLabel(row.status)}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            {row.awarded_points !== null ? (
+                              <span className="font-semibold text-emerald-700">+{row.awarded_points}</span>
+                            ) : (
+                              <span className="text-zinc-500">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+                    <TrophyIcon className="h-4 w-4" />
+                  </span>
+                  Offene Einlösungen
+                </h2>
+                <Link
+                  href="/berater/praemien"
+                  className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-colors hover:text-violet-900"
+                >
+                  Zu Prämien & Einlösungen
+                  <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
+              </div>
+              <div className="max-h-[240px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
+                <table className="min-w-full text-sm">
+                  <thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur">
+                    <tr>
+                      <th className="px-3 py-2">Empfehler</th>
+                      <th className="px-3 py-2">Prämie</th>
+                      <th className="px-3 py-2 text-right">Punkte</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-violet-100">
+                    {latestOpenRedemptions.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="px-3 py-6 text-zinc-500">
+                          Keine offenen Einlösungen.
+                        </td>
+                      </tr>
+                    ) : (
+                      latestOpenRedemptions.map((row) => {
+                        const referrerName = row.referrer
+                          ? `${row.referrer.first_name} ${row.referrer.last_name}`.trim()
+                          : "-";
+                        const rewardName =
+                          row.reward?.title || row.reward?.name || "Unbekannte Prämie";
+                        return (
+                          <tr key={row.id} className="transition-colors duration-200 hover:bg-violet-100/65">
+                            <td className="px-3 py-2 text-zinc-900">{referrerName || "-"}</td>
+                            <td className="px-3 py-2 text-zinc-700">{rewardName}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-zinc-900">
+                              {row.requested_points_cost}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </article>
           </div>
-        </article>
+        </div>
       </section>
 
       <p className="relative z-10 text-xs text-zinc-300/90">
