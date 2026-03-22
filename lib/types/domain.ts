@@ -22,6 +22,20 @@ export type PointsTransactionType =
   | "manual_adjustment"
   | "reversal";
 
+export type AdvisorAccountClassification = "live" | "test" | "internal" | "demo";
+export type AdvisorBillingMode = "live" | "test";
+export type AdvisorAccountStatus =
+  | "registered"
+  | "checkout_reserved"
+  | "setup_pending"
+  | "setup_paid"
+  | "active_paid"
+  | "canceled"
+  | "delinquent"
+  | "test_only";
+export type AdvisorBillingInterval = "monthly" | "annual";
+export type AdvisorLifetimeDiscountState = "inactive" | "pending_next_cycle" | "active";
+
 export type Referrer = {
   id: string;
   advisor_id: string;

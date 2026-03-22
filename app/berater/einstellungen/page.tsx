@@ -1,5 +1,6 @@
 ﻿import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAdvisorContext } from "@/lib/auth/advisor";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
@@ -524,6 +525,12 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
         <p className="mt-1 text-sm text-zinc-700">
           Verwalten Sie Level-Schwellen, Punktevergabe und die persönliche Darstellung Ihrer Neukontakt-Linkseite.
         </p>
+        <Link
+          href="/berater/dashboard"
+          className="mt-3 inline-flex items-center rounded-xl border border-violet-300/60 bg-white/85 px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100"
+        >
+          Zurück zum Dashboard
+        </Link>
       </section>
 
       {params.settings_saved === "1" ? (
@@ -751,3 +758,5 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
     </main>
   );
 }
+
+

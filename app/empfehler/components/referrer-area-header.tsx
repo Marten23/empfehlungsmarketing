@@ -1,10 +1,10 @@
 ﻿import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentReferrerContext } from "@/lib/auth/referrer";
 import {
   BookIcon,
   GiftIcon,
-  SparklesIcon,
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
 
@@ -63,15 +63,21 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
     <>
       <header className="relative z-30">
         <div className="mx-auto w-full max-w-7xl px-0">
-          <div className="rounded-3xl border border-violet-200/65 bg-violet-50/90 px-4 py-3 shadow-[0_20px_44px_rgba(5,3,12,0.34)] backdrop-blur-xl md:px-5 md:py-3.5">
+          <div className="rounded-3xl border border-violet-200/65 bg-violet-50/90 px-4 py-0.5 shadow-[0_20px_44px_rgba(5,3,12,0.34)] backdrop-blur-xl md:px-5 md:py-1">
             <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
               <div className="flex items-center gap-2 md:gap-4">
                 <Link
                   href="/empfehler/dashboard"
-                  className="inline-flex items-center gap-2.5 rounded-2xl border border-violet-300/60 bg-violet-100/80 px-3 py-2 text-sm font-semibold tracking-wide text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-200/75"
+                  className="inline-flex items-center transition-transform duration-300 hover:-translate-y-0.5"
                 >
-                  <SparklesIcon className="h-4.5 w-4.5" />
-                  Tarvo
+                  <Image
+                    src="/Logo/ChatGPT Image 22. März 2026, 09_33_57.transparent.png"
+                    alt="Rewaro"
+                    width={260}
+                    height={78}
+                    className="h-[5.75rem] w-auto md:h-[6rem]"
+                    priority
+                  />
                 </Link>
               </div>
 
@@ -198,3 +204,11 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
     </>
   );
 }
+
+
+
+
+
+
+
+

@@ -5,3 +5,4 @@ export * from "@/lib/queries/points";
 export * from "@/lib/queries/public-referral";
 export * from "@/lib/queries/public-referrer-invite";
 export * from "@/lib/queries/advisors";
+export * from "@/lib/queries/billing";

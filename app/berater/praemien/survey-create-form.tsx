@@ -107,9 +107,8 @@ export function SurveyCreateForm({
       )}
 
       <button type="submit" className={primaryButtonClass}>
-        Umfrage starten
+        Umfrage speichern
       </button>
     </form>
   );
 }
-

@@ -1,5 +1,6 @@
 ﻿import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import { createClient } from "@/lib/supabase/server";
@@ -342,6 +343,12 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
             <p className="text-sm text-zinc-700 md:text-base">
               Name, E-Mail, Passwort und Profilbild für deinen Empfehler-Bereich.
             </p>
+            <Link
+              href="/empfehler/dashboard"
+              className="inline-flex items-center rounded-xl border border-violet-300/60 bg-white/85 px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100"
+            >
+              Zurück zum Dashboard
+            </Link>
           </div>
 
           <div className="flex justify-center md:justify-end">
@@ -539,4 +546,6 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
     </main>
   );
 }
+
+
 

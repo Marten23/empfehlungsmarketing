@@ -145,6 +145,9 @@ export async function ensureAdvisorOnboardingForUser(
         .update({
           referred_by_advisor_id: inviterAdvisorId,
           referral_source: "advisor_invite",
+          account_status: "registered",
+          account_classification: "live",
+          billing_mode: "live",
         })
         .eq("id", existingAdvisor.id);
 
@@ -164,6 +167,9 @@ export async function ensureAdvisorOnboardingForUser(
     name: baseName,
     slug,
     is_active: true,
+    account_status: "registered",
+    account_classification: "live",
+    billing_mode: "live",
     referred_by_advisor_id: inviterAdvisorId,
     referral_source: inviterAdvisorId ? "advisor_invite" : null,
   };
@@ -200,4 +206,3 @@ export async function ensureAdvisorOnboardingForUser(
 
   return (insert.data as { id: string }).id;
 }
-

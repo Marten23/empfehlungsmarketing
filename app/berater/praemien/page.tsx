@@ -12,7 +12,6 @@ import {
   createRewardSurveyAction,
   deleteRewardSurveyAction,
   deleteRewardAction,
-  removeRewardImageAction,
   saveRewardAction,
   updateRewardSurveyAction,
   uploadRewardImageAction,
@@ -20,6 +19,8 @@ import {
 } from "@/app/berater/praemien/actions";
 import { ImageFocusPicker } from "@/app/berater/praemien/image-focus-picker";
 import { SurveyCreateForm } from "@/app/berater/praemien/survey-create-form";
+import { RewardEditModal } from "@/app/berater/praemien/reward-edit-modal";
+import { SurveyOverviewTrigger } from "@/app/berater/praemien/survey-overview-trigger";
 import type { RedemptionStatus } from "@/lib/types/domain";
 import {
   ArrowUpRightIcon,
@@ -325,7 +326,7 @@ export default async function AdvisorRewardsPage({
           </Link>
         </div>
       </section>
-      <section className="relative z-10 grid gap-3 sm:grid-cols-3">
+      <section className="relative z-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <article className={panelClass}>
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Prämien gesamt</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{rewards.length}</p>
@@ -338,6 +339,186 @@ export default async function AdvisorRewardsPage({
           <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Inaktiv</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{inactiveRewardsCount}</p>
         </article>
+        <SurveyOverviewTrigger
+          title="Prämien-Umfrage"
+          subtitle="Empfehler-Wünsche erfassen"
+          countLabel={`${surveyRows.length}`}
+        >
+          <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+            <SurveyCreateForm
+              rewards={rewards.filter((reward) => reward.is_active).slice(0, 12).map((reward) => ({
+                id: reward.id,
+                title: reward.title || reward.name || "Prämie",
+              }))}
+              inputClass={inputClass}
+              primaryButtonClass={primaryButtonClass}
+              createRewardSurveyAction={createRewardSurveyAction}
+            />
+
+            <aside className="rounded-xl border border-violet-200/70 bg-violet-50/65 p-3">
+              <p className="text-sm font-semibold text-zinc-900">Letzte Umfragen</p>
+              <div className="mt-2 space-y-2">
+                {surveyRows.length === 0 ? (
+                  <p className="rounded-lg border border-violet-200/70 bg-white/80 px-2.5 py-2 text-xs text-zinc-600">
+                    Noch keine Umfragen erstellt.
+                  </p>
+                ) : (
+                  surveyRows.map((survey) => (
+                    <div key={survey.id} className="rounded-lg border border-violet-200/70 bg-white/85 px-2.5 py-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-xs font-semibold text-zinc-900">{survey.title}</p>
+                        <form action={deleteRewardSurveyAction}>
+                          <input type="hidden" name="survey_id" value={survey.id} />
+                          <button
+                            type="submit"
+                            aria-label="Umfrage löschen"
+                            title="Umfrage löschen"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-rose-300/70 bg-rose-50 text-sm text-rose-700 transition hover:bg-rose-100"
+                          >
+                            🗑
+                          </button>
+                        </form>
+                      </div>
+                      <p className="mt-1 text-[11px] text-zinc-600">
+                        Typ: {survey.survey_type === "preset" ? "Vorgegebene Auswahl" : "Freie Vorschläge"}
+                        {survey.budget_limit_eur ? ` • Budget: ${survey.budget_limit_eur} €` : ""}
+                      </p>
+                      <p className="mt-1 text-[11px] text-zinc-500">
+                        Optionen: {surveyOptionCountBySurvey.get(survey.id) ?? 0} • Antworten: {surveyResponseCountBySurvey.get(survey.id) ?? 0}
+                      </p>
+                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
+                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
+                            Bearbeiten
+                          </summary>
+                          <form action={updateRewardSurveyAction} className="mt-2 grid gap-1.5">
+                            <input type="hidden" name="survey_id" value={survey.id} />
+                            <label className="text-[11px] text-zinc-600">
+                              Titel
+                              <input
+                                name="survey_title"
+                                defaultValue={survey.title}
+                                className={`${inputClass} mt-1`}
+                                required
+                              />
+                            </label>
+                            <label className="text-[11px] text-zinc-600">
+                              Beschreibung
+                              <textarea
+                                name="survey_description"
+                                defaultValue={survey.description ?? ""}
+                                rows={2}
+                                className={`${inputClass} mt-1`}
+                              />
+                            </label>
+                            {survey.survey_type === "open_budget" ? (
+                              <label className="text-[11px] text-zinc-600">
+                                Budgetlimit in €
+                                <input
+                                  type="number"
+                                  min={1}
+                                  name="budget_limit_eur"
+                                  defaultValue={String(survey.budget_limit_eur ?? "")}
+                                  className={`${inputClass} mt-1`}
+                                />
+                              </label>
+                            ) : null}
+                            <label className="text-[11px] text-zinc-600">
+                              Enddatum
+                              <input
+                                type="datetime-local"
+                                name="survey_ends_at"
+                                defaultValue={
+                                  survey.ends_at
+                                    ? new Date(survey.ends_at).toISOString().slice(0, 16)
+                                    : ""
+                                }
+                                className={`${inputClass} mt-1`}
+                              />
+                            </label>
+                            <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-700">
+                              <input
+                                type="checkbox"
+                                name="is_active"
+                                value="1"
+                                defaultChecked={survey.is_active}
+                              />
+                              Aktiv
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              <button type="submit" className={primaryButtonClass}>
+                                Umfrage speichern
+                              </button>
+                            </div>
+                          </form>
+                        </details>
+
+                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
+                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
+                            Antworten ansehen
+                          </summary>
+                          <div className="mt-2 rounded-lg border border-violet-200/70 bg-white/80 p-2">
+                            {survey.survey_type === "preset" ? (
+                              <div className="space-y-1.5">
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">
+                                  Abstimmung je Option
+                                </p>
+                                {(surveyOptionsBySurvey.get(survey.id) ?? []).length === 0 ? (
+                                  <p className="text-[11px] text-zinc-600">Keine Optionen vorhanden.</p>
+                                ) : (
+                                  (surveyOptionsBySurvey.get(survey.id) ?? []).map((option) => (
+                                    <div
+                                      key={option.id}
+                                      className="flex items-center justify-between rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
+                                    >
+                                      <span className="text-[11px] text-zinc-800">{option.text}</span>
+                                      <span className="rounded bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-800">
+                                        {surveyVoteCountByOptionId.get(option.id) ?? 0}
+                                      </span>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                            ) : null}
+
+                            <div className="mt-2 max-h-48 space-y-1.5 overflow-y-auto pr-1">
+                              {(surveyResponsesBySurvey.get(survey.id) ?? []).filter((row) => Boolean(row.note)).length === 0 ? (
+                                <p className="text-[11px] text-zinc-600">
+                                  Noch keine Notizen.
+                                </p>
+                              ) : (
+                                (surveyResponsesBySurvey.get(survey.id) ?? [])
+                                  .filter((row) => Boolean(row.note))
+                                  .map((response) => (
+                                    <div
+                                      key={response.id}
+                                      className="rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
+                                    >
+                                      <p className="text-[11px] font-semibold text-zinc-900">
+                                        {response.referrerName}
+                                      </p>
+                                      <p className="mt-0.5 text-[11px] text-zinc-700">
+                                        {response.note}
+                                      </p>
+                                      <p className="mt-0.5 text-[10px] text-zinc-500">
+                                        {response.createdAt
+                                          ? new Date(response.createdAt).toLocaleString("de-DE")
+                                          : ""}
+                                      </p>
+                                    </div>
+                                  ))
+                              )}
+                            </div>
+                          </div>
+                        </details>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </aside>
+          </div>
+        </SurveyOverviewTrigger>
       </section>
 
       {params.saved === "1" ? (
@@ -519,195 +700,8 @@ export default async function AdvisorRewardsPage({
         </div>
       </section>
 
-      <section className={panelClass}>
-        <details className="group" open>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl border border-violet-200/70 bg-violet-50/70 px-3 py-2.5 text-sm font-semibold text-zinc-900">
-            <span className="inline-flex items-center gap-2">
-              <SparklesIcon className="h-4 w-4 text-violet-700" />
-              Prämien-Umfrage an Empfehler
-            </span>
-            <span className="text-xs text-violet-700 transition group-open:rotate-180">▾</span>
-          </summary>
-
-          <div className="mt-3 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-            <SurveyCreateForm
-              rewards={rewards.filter((reward) => reward.is_active).slice(0, 12).map((reward) => ({
-                id: reward.id,
-                title: reward.title || reward.name || "Prämie",
-              }))}
-              inputClass={inputClass}
-              primaryButtonClass={primaryButtonClass}
-              createRewardSurveyAction={createRewardSurveyAction}
-            />
-
-            <aside className="rounded-xl border border-violet-200/70 bg-violet-50/65 p-3">
-              <p className="text-sm font-semibold text-zinc-900">Letzte Umfragen</p>
-              <div className="mt-2 space-y-2">
-                {surveyRows.length === 0 ? (
-                  <p className="rounded-lg border border-violet-200/70 bg-white/80 px-2.5 py-2 text-xs text-zinc-600">
-                    Noch keine Umfragen erstellt.
-                  </p>
-                ) : (
-                  surveyRows.map((survey) => (
-                    <div key={survey.id} className="rounded-lg border border-violet-200/70 bg-white/85 px-2.5 py-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs font-semibold text-zinc-900">{survey.title}</p>
-                        <form action={deleteRewardSurveyAction}>
-                          <input type="hidden" name="survey_id" value={survey.id} />
-                          <button
-                            type="submit"
-                            aria-label="Umfrage löschen"
-                            title="Umfrage löschen"
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-rose-300/70 bg-rose-50 text-sm text-rose-700 transition hover:bg-rose-100"
-                          >
-                            🗑
-                          </button>
-                        </form>
-                      </div>
-                      <p className="mt-1 text-[11px] text-zinc-600">
-                        Typ: {survey.survey_type === "preset" ? "Vorgegebene Auswahl" : "Freie Vorschläge"}
-                        {survey.budget_limit_eur ? ` • Budget: ${survey.budget_limit_eur} €` : ""}
-                      </p>
-                      <p className="mt-1 text-[11px] text-zinc-500">
-                        Optionen: {surveyOptionCountBySurvey.get(survey.id) ?? 0} • Antworten: {surveyResponseCountBySurvey.get(survey.id) ?? 0}
-                      </p>
-                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
-                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
-                            Bearbeiten
-                          </summary>
-                          <form action={updateRewardSurveyAction} className="mt-2 grid gap-1.5">
-                            <input type="hidden" name="survey_id" value={survey.id} />
-                            <label className="text-[11px] text-zinc-600">
-                              Titel
-                              <input
-                                name="survey_title"
-                                defaultValue={survey.title}
-                                className={`${inputClass} mt-1`}
-                                required
-                              />
-                            </label>
-                            <label className="text-[11px] text-zinc-600">
-                              Beschreibung
-                              <textarea
-                                name="survey_description"
-                                defaultValue={survey.description ?? ""}
-                                rows={2}
-                                className={`${inputClass} mt-1`}
-                              />
-                            </label>
-                            {survey.survey_type === "open_budget" ? (
-                              <label className="text-[11px] text-zinc-600">
-                                Budgetlimit in €
-                                <input
-                                  type="number"
-                                  min={1}
-                                  name="budget_limit_eur"
-                                  defaultValue={String(survey.budget_limit_eur ?? "")}
-                                  className={`${inputClass} mt-1`}
-                                />
-                              </label>
-                            ) : null}
-                            <label className="text-[11px] text-zinc-600">
-                              Enddatum
-                              <input
-                                type="datetime-local"
-                                name="survey_ends_at"
-                                defaultValue={
-                                  survey.ends_at
-                                    ? new Date(survey.ends_at).toISOString().slice(0, 16)
-                                    : ""
-                                }
-                                className={`${inputClass} mt-1`}
-                              />
-                            </label>
-                            <label className="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-700">
-                              <input
-                                type="checkbox"
-                                name="is_active"
-                                value="1"
-                                defaultChecked={survey.is_active}
-                              />
-                              Aktiv
-                            </label>
-                            <div className="flex flex-wrap gap-1.5">
-                              <button type="submit" className={primaryButtonClass}>
-                                Umfrage speichern
-                              </button>
-                            </div>
-                          </form>
-                        </details>
-
-                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
-                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
-                            Antworten ansehen
-                          </summary>
-                          <div className="mt-2 rounded-lg border border-violet-200/70 bg-white/80 p-2">
-                            {survey.survey_type === "preset" ? (
-                              <div className="space-y-1.5">
-                                <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">
-                                  Abstimmung je Option
-                                </p>
-                                {(surveyOptionsBySurvey.get(survey.id) ?? []).length === 0 ? (
-                                  <p className="text-[11px] text-zinc-600">Keine Optionen vorhanden.</p>
-                                ) : (
-                                  (surveyOptionsBySurvey.get(survey.id) ?? []).map((option) => (
-                                    <div
-                                      key={option.id}
-                                      className="flex items-center justify-between rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
-                                    >
-                                      <span className="text-[11px] text-zinc-800">{option.text}</span>
-                                      <span className="rounded bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-800">
-                                        {surveyVoteCountByOptionId.get(option.id) ?? 0}
-                                      </span>
-                                    </div>
-                                  ))
-                                )}
-                              </div>
-                            ) : null}
-
-                            <div className="mt-2 max-h-48 space-y-1.5 overflow-y-auto pr-1">
-                              {(surveyResponsesBySurvey.get(survey.id) ?? []).filter((row) => Boolean(row.note)).length === 0 ? (
-                                <p className="text-[11px] text-zinc-600">
-                                  Noch keine Notizen.
-                                </p>
-                              ) : (
-                                (surveyResponsesBySurvey.get(survey.id) ?? [])
-                                  .filter((row) => Boolean(row.note))
-                                  .map((response) => (
-                                    <div
-                                      key={response.id}
-                                      className="rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
-                                    >
-                                      <p className="text-[11px] font-semibold text-zinc-900">
-                                        {response.referrerName}
-                                      </p>
-                                      <p className="mt-0.5 text-[11px] text-zinc-700">
-                                        {response.note}
-                                      </p>
-                                      <p className="mt-0.5 text-[10px] text-zinc-500">
-                                        {response.createdAt
-                                          ? new Date(response.createdAt).toLocaleString("de-DE")
-                                          : ""}
-                                      </p>
-                                    </div>
-                                  ))
-                              )}
-                            </div>
-                          </div>
-                        </details>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </aside>
-          </div>
-        </details>
-      </section>
-
-      <section className="relative z-10 space-y-3">
-        <div className={`${panelClass} py-3`}>
+      <section className="relative z-10">
+        <article className={`${panelClass} py-3`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
@@ -717,7 +711,7 @@ export default async function AdvisorRewardsPage({
                 Bestehende Prämien
               </h2>
               <p className="mt-1 text-xs text-zinc-600">
-                Übersicht Ihrer angelegten Belohnungen. Mit „Bearbeiten“ klappen Details auf.
+                Übersicht Ihrer angelegten Belohnungen. Bearbeitung erfolgt über das Stift-Symbol.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -734,88 +728,56 @@ export default async function AdvisorRewardsPage({
               ) : null}
             </div>
           </div>
-        </div>
-        {rewards.length === 0 ? (
-          <article className={panelClass}>
-            <p className="text-sm text-zinc-600">Noch keine Prämien hinterlegt.</p>
-          </article>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {visibleRewards.map((reward) => (
-              <article key={reward.id} className={`${panelClass} p-3`}>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-3">
-                  {reward.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={reward.image_url} alt={reward.title || reward.name || "Prämie"} className="h-12 w-12 rounded-lg object-cover" style={{ objectPosition: `${reward.image_focus_x ?? 50}% ${reward.image_focus_y ?? 50}%` }} />
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-violet-200/70 bg-violet-50 text-[10px] text-zinc-500">Kein Bild</div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium text-zinc-900">{reward.title || reward.name}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                      <span className="rounded bg-violet-100 px-2 py-0.5 text-[11px] font-medium text-violet-800">
-                        {reward.points_cost} Punkte
-                      </span>
-                      <span className={reward.is_active ? "rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700" : "rounded bg-zinc-200 px-2 py-0.5 text-[11px] font-medium text-zinc-700"}>
-                        {reward.is_active ? "Aktiv" : "Inaktiv"}
-                      </span>
-                    </div>
-                    {reward.external_product_url ? (
-                      <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex text-xs text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Produktlink öffnen</a>
-                    ) : (
-                      <p className="mt-1 text-xs text-zinc-500">Kein Produktlink hinterlegt</p>
-                    )}
-                  </div>
-                </div>
-                <details className="w-full md:w-auto">
-                  <summary className={subtleButtonClass}>Bearbeiten</summary>
-                  <div className="mt-3">
-                    <form action={saveRewardAction} className="grid gap-3 md:grid-cols-2">
-                      <input type="hidden" name="id" value={reward.id} />
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600">Titel<input required name="title" defaultValue={reward.title || reward.name || ""} className={inputClass} /></label>
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600">Punktewert<input required type="number" min={1} name="points_cost" defaultValue={reward.points_cost} className={inputClass} /></label>
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600 md:col-span-2">Beschreibung<textarea name="description" rows={2} defaultValue={reward.description ?? ""} className={inputClass} /></label>
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600 md:col-span-2">Motivationstext<textarea name="motivation_text" rows={2} defaultValue={reward.motivation_text ?? ""} className={inputClass} /><p className={hintClass}>Wird Empfehlern direkt bei der Prämie angezeigt.</p></label>
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600">Bild-URL<input name="image_url" defaultValue={reward.image_url ?? ""} className={inputClass} /></label>
+          <div className="mt-3">
+            {rewards.length === 0 ? (
+              <p className="rounded-xl border border-violet-200/70 bg-white/78 px-3 py-3 text-sm text-zinc-600">
+                Noch keine Prämien hinterlegt.
+              </p>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {visibleRewards.map((reward) => (
+                  <article key={reward.id} className="rounded-xl border border-violet-200/70 bg-white/78 p-2.5">
+                  <div className="flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5">
                       {reward.image_url ? (
-                        <div className="md:col-span-2"><ImageFocusPicker imageUrl={reward.image_url} initialX={reward.image_focus_x ?? 50} initialY={reward.image_focus_y ?? 50} inputNameX="image_focus_x" inputNameY="image_focus_y" /></div>
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={reward.image_url} alt={reward.title || reward.name || "Prämie"} className="h-12 w-12 rounded-lg object-cover" style={{ objectPosition: `${reward.image_focus_x ?? 50}% ${reward.image_focus_y ?? 50}%` }} />
                       ) : (
-                        <><input type="hidden" name="image_focus_x" value={String(reward.image_focus_x ?? 50)} /><input type="hidden" name="image_focus_y" value={String(reward.image_focus_y ?? 50)} /></>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-violet-200/70 bg-violet-50 text-[9px] text-zinc-500">Kein Bild</div>
                       )}
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600">Quelle/Lizenz zum Bild<input name="image_source_note" defaultValue={reward.image_source_note ?? ""} placeholder="z. B. eigenes Foto, Adobe Stock, Herstellerfreigabe" className={inputClass} /></label>
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600">Produktlink<input name="external_product_url" defaultValue={reward.external_product_url ?? ""} className={inputClass} /></label>
-                      <label className="md:col-span-2 flex items-start gap-2 rounded-lg border border-zinc-200 bg-zinc-50/90 p-3 text-xs text-zinc-700">
-                        <input type="checkbox" name="image_rights_confirmed" value="1" defaultChecked={reward.image_rights_confirmed} className="mt-0.5" />
-                        <span>Ich bestätige die Nutzungsrechte für das verknüpfte Bild.{reward.image_rights_confirmed_at ? <span className="ml-1 text-zinc-500"> (zuletzt bestätigt am {new Date(reward.image_rights_confirmed_at).toLocaleString("de-DE")})</span> : null}</span>
-                      </label>
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600">Sichtbarkeit<select name="is_active" defaultValue={reward.is_active ? "1" : "0"} className={inputClass}><option value="1">aktiv</option><option value="0">inaktiv</option></select></label>
-                      <div className="md:col-span-2 flex flex-wrap gap-2"><button type="submit" className={primaryButtonClass}>Änderungen speichern</button><button type="submit" formAction={deleteRewardAction} className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100">Prämie löschen</button></div>
-                    </form>
-                    <form action={uploadRewardImageAction} className="mt-3 grid gap-3 rounded-lg border border-zinc-200 bg-zinc-50/85 p-3 md:grid-cols-2">
-                      <input type="hidden" name="reward_id" value={reward.id} /><input type="hidden" name="image_focus_x" value={String(reward.image_focus_x ?? 50)} /><input type="hidden" name="image_focus_y" value={String(reward.image_focus_y ?? 50)} />
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600 md:col-span-2">Bild für diese Prämie hochladen<input required type="file" name="image_file" accept="image/*" className={inputClass} /></label>
-                      <label className="flex flex-col gap-1 text-xs text-zinc-600 md:col-span-2">Quelle/Lizenz zum Bild (optional)<input name="image_source_note" defaultValue={reward.image_source_note ?? ""} placeholder="z. B. eigenes Foto, Adobe Stock, Herstellerfreigabe" className={inputClass} /></label>
-                      <label className="md:col-span-2 flex items-start gap-2 text-xs text-zinc-700"><input type="checkbox" name="image_rights_confirmed" value="1" className="mt-0.5" /><span>Ich bestätige die Nutzungsrechte für dieses Bild.</span></label>
-                      <div className="md:col-span-2 flex flex-wrap gap-2"><button type="submit" className={subtleButtonClass}>Bild hochladen</button>{reward.image_url ? <button type="submit" formAction={removeRewardImageAction} className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-sm text-red-700 transition-colors hover:bg-red-100">Bild entfernen</button> : null}</div>
-                    </form>
-                    {(reward.image_url || reward.external_product_url) ? (
-                      <div className="mt-3 flex flex-wrap gap-3 text-xs">
-                        {reward.image_url ? (
-                          <a href={reward.image_url} target="_blank" rel="noreferrer" className="text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Bild in neuem Tab prüfen</a>
-                        ) : null}
+                      <div>
+                        <p className="text-[15px] font-medium leading-tight text-zinc-900">{reward.title || reward.name}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800">
+                            {reward.points_cost} Punkte
+                          </span>
+                          <span className={reward.is_active ? "rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700" : "rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700"}>
+                            {reward.is_active ? "Aktiv" : "Inaktiv"}
+                          </span>
+                        </div>
                         {reward.external_product_url ? (
-                          <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Produktlink prüfen</a>
-                        ) : null}
+                          <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex text-[11px] text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Produktlink öffnen</a>
+                        ) : (
+                          <p className="mt-0.5 text-[11px] text-zinc-500">Kein Produktlink hinterlegt</p>
+                        )}
                       </div>
-                    ) : null}
+                    </div>
+                    <RewardEditModal
+                      reward={reward}
+                      inputClass={inputClass}
+                      primaryButtonClass={primaryButtonClass}
+                      subtleButtonClass={subtleButtonClass}
+                      hintClass={hintClass}
+                      saveRewardAction={saveRewardAction}
+                      deleteRewardAction={deleteRewardAction}
+                    />
                   </div>
-                </details>
+                  </article>
+                ))}
               </div>
-              </article>
-            ))}
+            )}
           </div>
-        )}
+        </article>
       </section>
 
       <section className={panelClass}>

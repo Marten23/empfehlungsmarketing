@@ -51,12 +51,29 @@ export async function markAdvisorContractActivated(
   supabase: SupabaseClient,
   advisorId: string,
 ) {
+  const rpc = await supabase.rpc("set_advisor_account_status", {
+    p_advisor_id: advisorId,
+    p_new_status: "active_paid",
+    p_billing_interval: "monthly",
+    p_period_start: new Date().toISOString(),
+    p_period_end: null,
+    p_mode: "live",
+  });
+
+  if (!rpc.error) return;
+
   const nowIso = new Date().toISOString();
   const primary = await supabase
     .from("advisors")
     .update({
       is_active: true,
       account_activated_at: nowIso,
+      account_status: "active_paid",
+      setup_paid_at: nowIso,
+      active_paid_at: nowIso,
+      billing_mode: "live",
+      account_classification: "live",
+      billing_interval_current: "monthly",
     })
     .eq("id", advisorId);
 
@@ -69,7 +86,8 @@ export async function markAdvisorContractActivated(
   const shouldFallbackToLegacyUpdate =
     primaryCode === "PGRST204" ||
     primaryCode === "42703" ||
-    primaryMessage.includes("account_activated_at");
+    primaryMessage.includes("account_activated_at") ||
+    primaryMessage.includes("account_status");
 
   if (shouldFallbackToLegacyUpdate) {
     // Fallback when account_activated_at column is not available yet.

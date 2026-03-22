@@ -1,5 +1,6 @@
-import { revalidatePath } from "next/cache";
+﻿import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import { createClient } from "@/lib/supabase/server";
@@ -105,7 +106,7 @@ async function applyPresetAvatarAction(formData: FormData) {
 
   const presetImage = String(formData.get("preset_avatar") ?? "").trim();
   if (!presetImage.startsWith("/images/")) {
-    redirectWithQuery({ avatar_error: "Bitte ein Preset-Bild auswählen." });
+    redirectWithQuery({ avatar_error: "Bitte ein Preset-Bild auswÃ¤hlen." });
   }
 
   const { error } = await supabase
@@ -133,7 +134,7 @@ async function updateAdvisorEmailAction(formData: FormData) {
   const email = String(formData.get("new_email") ?? "").trim().toLowerCase();
 
   if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    redirectWithQuery({ email_error: "Bitte eine gültige E-Mail eingeben." });
+    redirectWithQuery({ email_error: "Bitte eine gÃ¼ltige E-Mail eingeben." });
   }
 
   const { error } = await supabase.auth.updateUser({ email });
@@ -156,7 +157,7 @@ async function updateAdvisorPasswordAction(formData: FormData) {
     redirectWithQuery({ password_error: "Das Passwort muss mindestens 6 Zeichen haben." });
   }
   if (password !== passwordRepeat) {
-    redirectWithQuery({ password_error: "Passwörter stimmen nicht überein." });
+    redirectWithQuery({ password_error: "PasswÃ¶rter stimmen nicht Ã¼berein." });
   }
 
   const { error } = await supabase.auth.updateUser({ password });
@@ -261,8 +262,14 @@ export default async function AdvisorAccountPage({ searchParams }: PageProps) {
             </span>
             <h1 className="text-2xl font-semibold text-zinc-900 md:text-3xl">Kontoeinstellungen</h1>
             <p className="text-sm text-zinc-700 md:text-base">
-              Profil, E-Mail, Passwort und Profilbild für Ihren Beraterbereich.
+              Profil, E-Mail, Passwort und Profilbild fÃ¼r Ihren Beraterbereich.
             </p>
+            <Link
+              href="/berater/dashboard"
+              className="inline-flex items-center rounded-xl border border-violet-300/60 bg-white/85 px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100"
+            >
+              Zurück zum Dashboard
+            </Link>
           </div>
 
           <div className="flex justify-center md:justify-end">
@@ -288,12 +295,12 @@ export default async function AdvisorAccountPage({ searchParams }: PageProps) {
       ) : null}
       {params.email_saved === "1" ? (
         <p className="rounded-xl border border-emerald-300/70 bg-emerald-50/95 px-3 py-2 text-sm text-emerald-800">
-          E-Mail-Änderung angestoßen. Bitte bestätigen Sie den Link in Ihrem Postfach.
+          E-Mail-Ã„nderung angestoÃŸen. Bitte bestÃ¤tigen Sie den Link in Ihrem Postfach.
         </p>
       ) : null}
       {params.password_saved === "1" ? (
         <p className="rounded-xl border border-emerald-300/70 bg-emerald-50/95 px-3 py-2 text-sm text-emerald-800">
-          Passwort erfolgreich geändert.
+          Passwort erfolgreich geÃ¤ndert.
         </p>
       ) : null}
 
@@ -311,7 +318,7 @@ export default async function AdvisorAccountPage({ searchParams }: PageProps) {
       <section className="relative z-10 rounded-2xl border border-violet-200/55 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] md:p-5">
         <h2 className="inline-flex items-center gap-2 text-base font-semibold text-zinc-900">
           <SparklesIcon className="h-4 w-4 text-violet-700" />
-          Persönliche Daten
+          PersÃ¶nliche Daten
         </h2>
 
         <div className="mt-5 grid items-start gap-4 lg:grid-cols-2">
@@ -344,7 +351,7 @@ export default async function AdvisorAccountPage({ searchParams }: PageProps) {
 
           <div className="space-y-4">
             <form action={updateAdvisorEmailAction} className="grid gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
-              <p className="text-sm font-semibold text-zinc-900">E-Mail ändern</p>
+              <p className="text-sm font-semibold text-zinc-900">E-Mail Ã¤ndern</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Neue E-Mail-Adresse
                 <input
@@ -358,12 +365,12 @@ export default async function AdvisorAccountPage({ searchParams }: PageProps) {
                 type="submit"
                 className="w-fit rounded-xl border border-violet-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all hover:-translate-y-0.5 hover:bg-violet-100"
               >
-                E-Mail ändern
+                E-Mail Ã¤ndern
               </button>
             </form>
 
             <form action={updateAdvisorPasswordAction} className="grid gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
-              <p className="text-sm font-semibold text-zinc-900">Passwort ändern</p>
+              <p className="text-sm font-semibold text-zinc-900">Passwort Ã¤ndern</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Neues Passwort
                 <input
@@ -388,20 +395,20 @@ export default async function AdvisorAccountPage({ searchParams }: PageProps) {
                 type="submit"
                 className="w-fit rounded-xl border border-violet-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all hover:-translate-y-0.5 hover:bg-violet-100"
               >
-                Passwort ändern
+                Passwort Ã¤ndern
               </button>
             </form>
 
             <div className="rounded-xl border border-rose-200/70 bg-rose-50/55 p-3">
               <p className="text-sm font-semibold text-rose-800">Gefahrenbereich</p>
               <p className="mt-1 text-xs text-rose-700">
-                Löscht Ihr Berater-Konto und alle zugehörigen Daten unwiderruflich.
+                LÃ¶scht Ihr Berater-Konto und alle zugehÃ¶rigen Daten unwiderruflich.
               </p>
               <div className="mt-2">
                 <DeleteAccountButton
                   action={deleteAdvisorAccountAction}
-                  title="Berater-Konto endgültig löschen?"
-                  description="Ihr Konto und alle zugehörigen Daten werden dauerhaft entfernt. Diese Aktion kann nicht rückgängig gemacht werden."
+                  title="Berater-Konto endgÃ¼ltig lÃ¶schen?"
+                  description="Ihr Konto und alle zugehÃ¶rigen Daten werden dauerhaft entfernt. Diese Aktion kann nicht rÃ¼ckgÃ¤ngig gemacht werden."
                 />
               </div>
             </div>
@@ -411,3 +418,4 @@ export default async function AdvisorAccountPage({ searchParams }: PageProps) {
     </main>
   );
 }
+
