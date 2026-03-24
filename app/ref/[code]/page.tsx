@@ -201,10 +201,10 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
 
   return (
     <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-4 p-4 md:p-6">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,rgba(170,130,255,0.16),transparent_52%),radial-gradient(circle_at_15%_0%,rgba(126,87,255,0.26),transparent_42%),radial-gradient(circle_at_85%_8%,rgba(159,124,255,0.2),transparent_40%),linear-gradient(180deg,#1b1230_0%,#140d26_100%)]" />
-      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-22" />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_8%_4%,rgba(255,157,66,0.2),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(96,165,250,0.18),transparent_38%),radial-gradient(circle_at_50%_120%,rgba(139,92,246,0.09),transparent_48%),linear-gradient(180deg,#fcfcff_0%,#f6f8ff_45%,#edf2ff_100%)]" />
+      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-[0.1] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0.1)_36%,rgba(0,0,0,0.02)_100%)]" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/60 bg-violet-50/88 p-4 shadow-[0_28px_70px_rgba(5,3,12,0.35)] backdrop-blur-xl md:p-5">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-4 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-5">
         <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
           <AdvisorIntroPanel
             displayName={presentation.displayName}
@@ -215,8 +215,8 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
             showWelcomeVideo={presentation.showWelcomeVideo}
           />
 
-          <div className="rounded-2xl border border-violet-200/70 bg-white/86 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-            <span className="inline-flex items-center rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
+          <div className="rounded-2xl border border-orange-200/70 bg-white/86 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <span className="inline-flex items-center rounded-full border border-orange-300/45 bg-orange-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
               Persönliche Empfehlung
             </span>
             <h1 className="mt-2 text-xl font-semibold text-zinc-900 md:text-2xl">
@@ -226,7 +226,7 @@ export default async function RefCodePage({ params }: RefCodePageProps) {
               Empfohlen von {context.referrer_first_name} {context.referrer_last_name}
             </p>
             {presentation.welcomeText ? (
-              <p className="mt-3 rounded-xl border border-violet-200/70 bg-violet-50/70 px-3 py-2 text-sm text-zinc-700">
+              <p className="mt-3 rounded-xl border border-orange-200/70 bg-orange-50/70 px-3 py-2 text-sm text-zinc-700">
                 {presentation.welcomeText}
               </p>
             ) : null}

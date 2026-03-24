@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { SurveyOptionsBuilder } from "@/app/berater/praemien/survey-options-builder";
@@ -24,7 +24,7 @@ export function SurveyCreateForm({
   const [surveyType, setSurveyType] = useState<"preset" | "open_budget">("preset");
 
   return (
-    <form action={createRewardSurveyAction} className="grid gap-2 rounded-xl border border-violet-200/70 bg-violet-50/65 p-3">
+    <form action={createRewardSurveyAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/65 p-3">
       <label className="flex flex-col gap-1 text-xs text-zinc-600">
         Titel der Umfrage
         <input
@@ -75,8 +75,8 @@ export function SurveyCreateForm({
       </label>
 
       {surveyType === "preset" ? (
-        <div className="rounded-lg border border-violet-200/70 bg-white/80 p-2.5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+        <div className="rounded-lg border border-orange-200/70 bg-white/80 p-2.5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
             Variante A: Vorgegebene Optionen
           </p>
           <p className="mt-1 text-[11px] text-zinc-600">
@@ -96,8 +96,8 @@ export function SurveyCreateForm({
           <SurveyOptionsBuilder inputClass={inputClass} />
         </div>
       ) : (
-        <div className="rounded-lg border border-violet-200/70 bg-white/80 p-2.5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+        <div className="rounded-lg border border-orange-200/70 bg-white/80 p-2.5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
             Variante B: Freie Vorschläge
           </p>
           <p className="mt-1 text-[11px] text-zinc-600">

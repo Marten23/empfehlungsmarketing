@@ -1,4 +1,4 @@
-import type { Reward } from "@/lib/types/domain";
+﻿import type { Reward } from "@/lib/types/domain";
 import { ProgressBar } from "@/app/empfehler/dashboard/components/progress-bar";
 import { GiftIcon, TargetIcon } from "@/app/empfehler/dashboard/components/icons";
 
@@ -18,16 +18,16 @@ export function RewardTeaserCard({
   availablePoints,
 }: RewardTeaserCardProps) {
   return (
-    <section className="h-full rounded-2xl border border-violet-200/55 bg-violet-50/88 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+    <section className="h-full rounded-2xl border border-zinc-200/85 bg-white/95 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
       <div className="inline-flex items-center gap-2">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
           <GiftIcon className="h-5 w-5" />
         </span>
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-violet-300/45 bg-violet-100/80 text-violet-700">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-orange-300/45 bg-orange-100/80 text-orange-700">
           <TargetIcon className="h-4 w-4" />
         </span>
       </div>
-      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-violet-700">
+      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-orange-700">
         Nächste Belohnung
       </p>
 

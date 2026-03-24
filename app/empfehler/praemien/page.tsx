@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentReferrerContext } from "@/lib/auth/referrer";
@@ -26,7 +26,7 @@ function redemptionStatusBadgeClass(status: string) {
   const normalized = status.toLowerCase();
   if (normalized === "offen") return "bg-amber-100 text-amber-800 ring-amber-200";
   if (normalized === "bearbeitet" || normalized === "bestellt") {
-    return "bg-indigo-100 text-indigo-700 ring-indigo-200";
+    return "bg-orange-100 text-orange-700 ring-orange-200";
   }
   if (normalized === "abgeschlossen") {
     return "bg-emerald-100 text-emerald-800 ring-emerald-200";
@@ -95,26 +95,26 @@ export default async function ReferrerRewardsPage({
       />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[4%] top-[18%] h-[220px] w-[260px] opacity-55">
-          <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-violet-300/30 bg-violet-300/10" />
+          <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-orange-300/30 bg-orange-300/10" />
           <div className="hex-node hex-pulse absolute left-14 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/18 [animation-delay:1.1s]" />
-          <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-violet-300/26 bg-violet-200/12 [animation-delay:2s]" />
-          <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-violet-300/25 bg-violet-300/8 [animation-delay:2.7s]" />
+          <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2s]" />
+          <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-orange-300/25 bg-orange-300/8 [animation-delay:2.7s]" />
         </div>
         <div className="absolute right-[5%] top-[56%] h-[240px] w-[300px] opacity-55">
-          <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-violet-300/26 bg-violet-300/8 [animation-delay:0.8s]" />
+          <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-orange-300/26 bg-orange-300/8 [animation-delay:0.8s]" />
           <div className="hex-node hex-pulse absolute left-24 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/16 [animation-delay:1.6s]" />
-          <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-violet-300/26 bg-violet-200/12 [animation-delay:2.4s]" />
-          <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-violet-300/24 bg-violet-300/8 [animation-delay:3.2s]" />
+          <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2.4s]" />
+          <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-orange-300/24 bg-orange-300/8 [animation-delay:3.2s]" />
         </div>
       </div>
 
       <ReferrerAreaHeader active="praemien" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/55 bg-violet-50/88 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.38)] backdrop-blur-xl md:p-6">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/35 text-violet-800">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/45 bg-orange-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-300/35 text-orange-800">
                 <GiftIcon className="h-3.5 w-3.5" />
               </span>
               Prämienbereich
@@ -125,8 +125,8 @@ export default async function ReferrerRewardsPage({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-violet-200/65 bg-violet-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-violet-700">
+          <div className="rounded-2xl border border-orange-200/65 bg-orange-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-orange-700">
               <TrophyIcon className="h-4 w-4" />
               Verfügbare Punkte
             </p>
@@ -138,11 +138,11 @@ export default async function ReferrerRewardsPage({
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
             href="/empfehler/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
+            className="inline-flex items-center gap-2 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90"
           >
             Zurück zum Dashboard
           </Link>
-          <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/40 bg-violet-100/80 px-3 py-1 text-xs text-violet-700">
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/40 bg-orange-100/80 px-3 py-1 text-xs text-orange-700">
             <SparklesIcon className="h-3.5 w-3.5" />
             {sortedRewards.filter((r) => r.points_cost <= balance).length} Prämien aktuell einlösbar
           </span>
@@ -165,14 +165,14 @@ export default async function ReferrerRewardsPage({
         </p>
       ) : null}
 
-      <section className="relative z-10 rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+      <section className="relative z-10 rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-zinc-700">
             Sortierung nach Punktewert: <span className="font-medium text-zinc-900">{sort === "asc" ? "aufsteigend" : "absteigend"}</span>
           </p>
           <Link
             href={`/empfehler/praemien?sort=${sort === "asc" ? "desc" : "asc"}`}
-            className="group inline-flex items-center gap-2 rounded-lg border border-violet-300/55 bg-white px-3 py-1.5 text-sm font-medium text-violet-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100 hover:text-violet-900 hover:ring-1 hover:ring-violet-300/65"
+            className="group inline-flex items-center gap-2 rounded-lg border border-orange-300/55 bg-white px-3 py-1.5 text-sm font-medium text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100 hover:text-orange-900 hover:ring-1 hover:ring-orange-300/65"
           >
             {sort === "asc" ? "Absteigend anzeigen" : "Aufsteigend anzeigen"}
             <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -182,7 +182,7 @@ export default async function ReferrerRewardsPage({
 
       <section className="relative z-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {sortedRewards.length === 0 ? (
-          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 text-sm text-zinc-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+          <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 text-sm text-zinc-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
             Aktuell sind keine aktiven Prämien verfügbar.
           </article>
         ) : (
@@ -193,7 +193,7 @@ export default async function ReferrerRewardsPage({
             return (
               <article
                 key={reward.id}
-                className="group relative overflow-hidden rounded-2xl border border-violet-200/70 bg-violet-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:-translate-y-1 hover:bg-violet-100 hover:ring-1 hover:ring-violet-400/60 hover:shadow-[0_18px_36px_rgba(76,29,149,0.22)]"
+                className="group relative overflow-hidden rounded-2xl border border-orange-200/70 bg-orange-50/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:-translate-y-1 hover:bg-orange-100 hover:ring-1 hover:ring-orange-400/60 hover:shadow-[0_18px_36px_rgba(249,115,22,0.18)]"
               >
                 {reward.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -206,7 +206,7 @@ export default async function ReferrerRewardsPage({
                     }}
                   />
                 ) : (
-                  <div className="mb-3 flex h-40 w-full items-center justify-center rounded-xl border border-violet-200/70 bg-violet-100/70 text-violet-700">
+                  <div className="mb-3 flex h-40 w-full items-center justify-center rounded-xl border border-orange-200/70 bg-orange-100/70 text-orange-700">
                     <GiftIcon className="h-8 w-8" />
                   </div>
                 )}
@@ -216,7 +216,7 @@ export default async function ReferrerRewardsPage({
                   <p className="mt-2 line-clamp-3 text-sm text-zinc-700">{reward.description}</p>
                 ) : null}
                 {reward.motivation_text ? (
-                  <p className="mt-2 rounded-lg border border-violet-200/60 bg-violet-100/70 px-3 py-2 text-sm text-violet-800">
+                  <p className="mt-2 rounded-lg border border-orange-200/60 bg-orange-100/70 px-3 py-2 text-sm text-orange-800">
                     {reward.motivation_text}
                   </p>
                 ) : null}
@@ -240,7 +240,7 @@ export default async function ReferrerRewardsPage({
                       href={reward.external_product_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
+                      className="inline-flex items-center gap-1 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90"
                     >
                       Details ansehen
                       <ArrowUpRightIcon className="h-3.5 w-3.5" />
@@ -261,7 +261,7 @@ export default async function ReferrerRewardsPage({
         )}
       </section>
 
-      <section className="relative z-10 rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+      <section className="relative z-10 rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
         <h2 className="text-sm font-medium text-zinc-900">Meine Einlösungen</h2>
         <div className="mt-3 overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -272,7 +272,7 @@ export default async function ReferrerRewardsPage({
                 <th className="px-2 py-2">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-violet-100">
+            <tbody className="divide-y divide-orange-100">
               {redemptions.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-2 py-4 text-zinc-500">

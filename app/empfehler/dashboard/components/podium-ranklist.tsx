@@ -33,14 +33,14 @@ function Avatar({ entry, size = "h-12 w-12" }: { entry: RankEntry; size?: string
       <img
         src={entry.avatarUrl}
         alt={entry.name}
-        className={`${size} rounded-full border border-violet-200/90 object-cover shadow-[0_10px_24px_rgba(82,62,150,0.26)]`}
+        className={`${size} rounded-full border border-orange-200/90 object-cover shadow-[0_10px_24px_rgba(82,62,150,0.26)]`}
       />
     );
   }
 
   return (
     <span
-      className={`${size} inline-flex items-center justify-center rounded-full border border-violet-200/90 bg-violet-100 text-xs font-semibold text-violet-700`}
+      className={`${size} inline-flex items-center justify-center rounded-full border border-orange-200/90 bg-orange-100 text-xs font-semibold text-orange-700`}
     >
       {getInitials(entry.name)}
     </span>

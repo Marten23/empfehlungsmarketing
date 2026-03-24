@@ -1,4 +1,4 @@
-﻿import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import path from "node:path";
@@ -191,7 +191,7 @@ async function updateReferrerPasswordAction(formData: FormData) {
   }
 
   if (password !== passwordRepeat) {
-    redirectWithQuery({ password_error: "Passwörter stimmen nicht überein." });
+    redirectWithQuery({ password_error: "Passwörter stimmen nicht Überein." });
   }
 
   const { error } = await supabase.auth.updateUser({ password });
@@ -330,11 +330,11 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
 
       <ReferrerAreaHeader active="mein-konto" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/55 bg-violet-50/88 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.38)] backdrop-blur-xl md:p-6">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-6">
         <div className="grid items-center gap-4 md:grid-cols-[1fr_auto]">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/35 text-violet-800">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/45 bg-orange-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-300/35 text-orange-800">
                 <UsersIcon className="h-3.5 w-3.5" />
               </span>
               Mein Konto
@@ -345,7 +345,7 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/empfehler/dashboard"
-              className="inline-flex items-center rounded-xl border border-violet-300/60 bg-white/85 px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100"
+              className="inline-flex items-center rounded-xl border border-orange-300/60 bg-white/85 px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100"
             >
               Zurück zum Dashboard
             </Link>
@@ -399,24 +399,24 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
           </p>
         ))}
 
-      <section className="relative z-10 rounded-2xl border border-violet-200/55 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] md:p-5">
+      <section className="relative z-10 rounded-2xl border border-orange-200/55 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] md:p-5">
         <h2 className="inline-flex items-center gap-2 text-base font-semibold text-zinc-900">
-          <SparklesIcon className="h-4 w-4 text-violet-700" />
+          <SparklesIcon className="h-4 w-4 text-orange-700" />
           Persönliche Daten & Kontoeinstellungen
         </h2>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-violet-200/70 bg-violet-50/70 px-3 py-2">
+          <div className="rounded-xl border border-orange-200/70 bg-orange-50/70 px-3 py-2">
             <p className="text-xs text-zinc-500">Rolle</p>
             <p className="text-sm font-semibold text-zinc-900">Empfehler</p>
           </div>
-          <div className="rounded-xl border border-violet-200/70 bg-violet-50/70 px-3 py-2">
+          <div className="rounded-xl border border-orange-200/70 bg-orange-50/70 px-3 py-2">
             <p className="text-xs text-zinc-500">Betreut durch</p>
             <p className="text-sm font-semibold text-zinc-900">
               {(advisorInfo as { name?: string } | null)?.name ?? referrerContext.advisorName}
             </p>
           </div>
-          <div className="rounded-xl border border-violet-200/70 bg-violet-50/70 px-3 py-2">
+          <div className="rounded-xl border border-orange-200/70 bg-orange-50/70 px-3 py-2">
             <p className="text-xs text-zinc-500">Aktuelle E-Mail</p>
             <p className="truncate text-sm font-semibold text-zinc-900">{user.email ?? "-"}</p>
           </div>
@@ -424,7 +424,7 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
 
         <div className="mt-5 grid items-start gap-4 lg:grid-cols-[1.08fr_1fr]">
           <div className="space-y-4">
-            <form action={updateReferrerProfileAction} className="grid gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
+            <form action={updateReferrerProfileAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
               <p className="text-sm font-semibold text-zinc-900">Profil bearbeiten</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Name
@@ -432,7 +432,7 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
                   name="full_name"
                   defaultValue={fullName}
                   required
-                  className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
+                  className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
                 />
               </label>
               <label className="grid gap-1 text-sm text-zinc-700">
@@ -440,25 +440,25 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
                 <input
                   name="phone"
                   defaultValue={phone}
-                  className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
+                  className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]"
                 />
               </label>
               <button
                 type="submit"
-                className="mt-1 w-fit rounded-xl border border-violet-300/50 bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500"
+                className="mt-1 w-fit rounded-xl border border-orange-300/50 bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500"
               >
                 Name & Telefonnummer speichern
               </button>
             </form>
 
-            <form action={updateReferrerThemeAction} className="grid gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
+            <form action={updateReferrerThemeAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
               <p className="text-sm font-semibold text-zinc-900">Design-Variante</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Variante auswählen
                 <select
                   name="referrer_theme"
                   defaultValue={currentTheme.key}
-                  className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
+                  className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
                 >
                   {referrerThemeOptions.map((option) => (
                     <option key={option.key} value={option.key}>
@@ -469,7 +469,7 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
               </label>
               <button
                 type="submit"
-                className="w-fit rounded-xl border border-violet-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all hover:-translate-y-0.5 hover:bg-violet-100"
+                className="w-fit rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all hover:-translate-y-0.5 hover:bg-orange-100"
               >
                 Design speichern
               </button>
@@ -477,27 +477,27 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
           </div>
 
           <div className="space-y-4">
-            <form action={updateReferrerEmailAction} className="grid gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
-              <p className="text-sm font-semibold text-zinc-900">E-Mail ändern</p>
+            <form action={updateReferrerEmailAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
+              <p className="text-sm font-semibold text-zinc-900">E-Mail Ändern</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Neue E-Mail-Adresse
                 <input
                   type="email"
                   name="new_email"
                   required
-                  className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
+                  className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
                 />
               </label>
               <button
                 type="submit"
-                className="w-fit rounded-xl border border-violet-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all hover:-translate-y-0.5 hover:bg-violet-100"
+                className="w-fit rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all hover:-translate-y-0.5 hover:bg-orange-100"
               >
-                E-Mail ändern
+                E-Mail Ändern
               </button>
             </form>
 
-            <form action={updateReferrerPasswordAction} className="grid gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
-              <p className="text-sm font-semibold text-zinc-900">Passwort ändern</p>
+            <form action={updateReferrerPasswordAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
+              <p className="text-sm font-semibold text-zinc-900">Passwort Ändern</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Neues Passwort
                 <input
@@ -505,7 +505,7 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
                   name="new_password"
                   minLength={6}
                   required
-                  className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
+                  className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
                 />
               </label>
               <label className="grid gap-1 text-sm text-zinc-700">
@@ -515,14 +515,14 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
                   name="new_password_repeat"
                   minLength={6}
                   required
-                  className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
+                  className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
                 />
               </label>
               <button
                 type="submit"
-                className="w-fit rounded-xl border border-violet-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all hover:-translate-y-0.5 hover:bg-violet-100"
+                className="w-fit rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all hover:-translate-y-0.5 hover:bg-orange-100"
               >
-                Passwort ändern
+                Passwort Ändern
               </button>
             </form>
 

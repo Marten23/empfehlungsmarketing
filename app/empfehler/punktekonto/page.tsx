@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentReferrerContext } from "@/lib/auth/referrer";
@@ -36,7 +36,7 @@ function transactionTypeBadgeClass(type: string) {
     return "bg-amber-100 text-amber-800 ring-amber-200";
   }
   if (type === "manual_adjustment") {
-    return "bg-indigo-100 text-indigo-700 ring-indigo-200";
+    return "bg-orange-100 text-orange-700 ring-orange-200";
   }
   if (type === "reversal") {
     return "bg-rose-100 text-rose-700 ring-rose-200";
@@ -108,26 +108,26 @@ export default async function ReferrerPointsAccountPage() {
       />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[4%] top-[18%] h-[220px] w-[260px] opacity-55">
-          <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-violet-300/30 bg-violet-300/10" />
+          <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-orange-300/30 bg-orange-300/10" />
           <div className="hex-node hex-pulse absolute left-14 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/18 [animation-delay:1.1s]" />
-          <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-violet-300/26 bg-violet-200/12 [animation-delay:2s]" />
-          <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-violet-300/25 bg-violet-300/8 [animation-delay:2.7s]" />
+          <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2s]" />
+          <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-orange-300/25 bg-orange-300/8 [animation-delay:2.7s]" />
         </div>
         <div className="absolute right-[5%] top-[56%] h-[240px] w-[300px] opacity-55">
-          <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-violet-300/26 bg-violet-300/8 [animation-delay:0.8s]" />
+          <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-orange-300/26 bg-orange-300/8 [animation-delay:0.8s]" />
           <div className="hex-node hex-pulse absolute left-24 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/16 [animation-delay:1.6s]" />
-          <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-violet-300/26 bg-violet-200/12 [animation-delay:2.4s]" />
-          <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-violet-300/24 bg-violet-300/8 [animation-delay:3.2s]" />
+          <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2.4s]" />
+          <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-orange-300/24 bg-orange-300/8 [animation-delay:3.2s]" />
         </div>
       </div>
 
       <ReferrerAreaHeader active="punktekonto" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/55 bg-violet-50/88 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.38)] backdrop-blur-xl md:p-6">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/35 text-violet-800">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/45 bg-orange-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-300/35 text-orange-800">
                 <BookIcon className="h-3.5 w-3.5" />
               </span>
               Punkteverlauf
@@ -138,8 +138,8 @@ export default async function ReferrerPointsAccountPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-violet-200/65 bg-violet-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-violet-700">
+          <div className="rounded-2xl border border-orange-200/65 bg-orange-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-orange-700">
               <SparklesIcon className="h-4 w-4" />
               Letzte Buchung
             </p>
@@ -155,13 +155,13 @@ export default async function ReferrerPointsAccountPage() {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
             href="/empfehler/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
+            className="inline-flex items-center gap-2 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90"
           >
             Zurück zum Dashboard
           </Link>
           <Link
             href="/empfehler/praemien"
-            className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
+            className="group inline-flex items-center gap-1 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90"
           >
             Zu den Prämien
             <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -170,15 +170,15 @@ export default async function ReferrerPointsAccountPage() {
       </section>
 
       <section className="relative z-10 grid gap-4 md:grid-cols-2">
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-violet-700">
+        <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+          <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-orange-700">
             <BoltIcon className="h-4 w-4" />
             Verfügbare Punkte
           </p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{availablePoints}</p>
         </article>
-        <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-          <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-violet-700">
+        <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+          <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-orange-700">
             <TrophyIcon className="h-4 w-4" />
             Gesammelte Punkte
           </p>
@@ -193,10 +193,10 @@ export default async function ReferrerPointsAccountPage() {
         </p>
       ) : null}
 
-      <section className="relative z-10 rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+      <section className="relative z-10 rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
               <BookIcon className="h-4 w-4" />
             </span>
             Vollständiger Punkteverlauf
@@ -204,9 +204,9 @@ export default async function ReferrerPointsAccountPage() {
           <span className="text-xs text-zinc-600">{pointsRows.length} Buchungen</span>
         </div>
 
-        <div className="max-h-[560px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
+        <div className="max-h-[560px] overflow-auto rounded-xl border border-orange-100/80 bg-orange-50/65">
           <table className="min-w-full text-sm">
-            <thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur">
+            <thead className="sticky top-0 bg-orange-100/90 text-left text-zinc-600 backdrop-blur">
               <tr>
                 <th className="px-3 py-2">Datum</th>
                 <th className="px-3 py-2">Beschreibung</th>
@@ -214,7 +214,7 @@ export default async function ReferrerPointsAccountPage() {
                 <th className="px-3 py-2 text-right">Punkte</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-violet-100">
+            <tbody className="divide-y divide-orange-100">
               {pointsRows.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-3 py-6 text-zinc-500">
@@ -233,7 +233,7 @@ export default async function ReferrerPointsAccountPage() {
                   return (
                     <tr
                       key={row.id}
-                      className="transition-colors duration-200 hover:bg-violet-100/65"
+                      className="transition-colors duration-200 hover:bg-orange-100/65"
                     >
                       <td className="px-3 py-2 text-zinc-600">
                         {new Date(row.created_at).toLocaleString("de-DE")}

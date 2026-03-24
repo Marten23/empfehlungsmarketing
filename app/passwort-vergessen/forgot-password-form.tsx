@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useActionState } from "react";
 import { forgotPasswordAction } from "@/app/login/actions";
@@ -21,7 +21,7 @@ export function ForgotPasswordForm() {
           name="email"
           required
           autoComplete="email"
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="name@beispiel.de"
         />
       </label>
@@ -41,7 +41,7 @@ export function ForgotPasswordForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-xl border border-violet-300/40 bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 disabled:opacity-50"
+        className="rounded-xl border border-orange-300/40 bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500 disabled:opacity-50"
       >
         {isPending ? "Sende E-Mail..." : "Link zum Zurücksetzen senden"}
       </button>

@@ -1,4 +1,4 @@
-type AdvisorBusinessImageProps = {
+﻿type AdvisorBusinessImageProps = {
   imageUrl: string | null;
   name: string;
   ratio?: "portrait" | "landscape";
@@ -32,7 +32,7 @@ export function AdvisorBusinessImage({
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center">
-          <span className="inline-flex h-24 w-24 items-center justify-center rounded-full border border-violet-300/70 bg-violet-100/90 text-2xl font-semibold text-violet-800">
+          <span className="inline-flex h-24 w-24 items-center justify-center rounded-full border border-orange-300/70 bg-orange-100/90 text-2xl font-semibold text-orange-800">
             {getInitials(name)}
           </span>
         </div>

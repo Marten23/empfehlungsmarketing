@@ -102,7 +102,7 @@ export function AdvisorBusinessImageUploader({
       <AdvisorBusinessImage
         imageUrl={effectivePreviewUrl}
         name={previewName}
-        className={`mx-auto w-full border border-violet-200/70 bg-white/70 shadow-[0_10px_22px_rgba(56,35,98,0.14)] ${compact ? "max-w-[120px]" : "max-w-[210px]"}`}
+        className={`mx-auto w-full border border-orange-200/70 bg-white/70 shadow-[0_10px_22px_rgba(56,35,98,0.14)] ${compact ? "max-w-[120px]" : "max-w-[210px]"}`}
       />
 
       <label className="grid gap-1 text-sm text-zinc-700">
@@ -115,7 +115,7 @@ export function AdvisorBusinessImageUploader({
             const file = event.target.files?.[0] ?? null;
             void handleFileChange(file);
           }}
-          className="rounded-xl border border-violet-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-violet-800"
+          className="rounded-xl border border-orange-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 file:mr-3 file:rounded-lg file:border-0 file:bg-orange-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-orange-800"
         />
       </label>
 
@@ -125,7 +125,7 @@ export function AdvisorBusinessImageUploader({
       <button
         type="submit"
         disabled={!canSubmit}
-        className="w-fit rounded-xl border border-violet-300/50 bg-white px-3 py-1.5 text-xs font-semibold text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        className="w-fit rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-xs font-semibold text-orange-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
         Bild hochladen
       </button>

@@ -101,11 +101,11 @@ function StatChip({
     <div
       className={`rounded-xl border px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)] ${
         emphasis
-          ? "border-violet-300/70 bg-violet-100/90"
-          : "border-violet-200/70 bg-white/82"
+          ? "border-orange-300/70 bg-orange-100/90"
+          : "border-orange-200/70 bg-white/82"
       }`}
     >
-      <p className="text-[11px] font-medium uppercase tracking-wide text-violet-700">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-orange-700">
         {label}
       </p>
       <p className="mt-1 text-sm font-semibold text-zinc-900">{value}</p>
@@ -453,26 +453,26 @@ export default async function ReferrerDashboardPage({
       />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[4%] top-[18%] h-[220px] w-[260px] opacity-55">
-          <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-violet-300/30 bg-violet-300/10" />
+          <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-orange-300/30 bg-orange-300/10" />
           <div className="hex-node hex-pulse absolute left-14 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/18 [animation-delay:1.1s]" />
-          <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-violet-300/26 bg-violet-200/12 [animation-delay:2s]" />
-          <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-violet-300/25 bg-violet-300/8 [animation-delay:2.7s]" />
+          <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2s]" />
+          <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-orange-300/25 bg-orange-300/8 [animation-delay:2.7s]" />
         </div>
         <div className="absolute right-[5%] top-[56%] h-[240px] w-[300px] opacity-55">
-          <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-violet-300/26 bg-violet-300/8 [animation-delay:0.8s]" />
+          <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-orange-300/26 bg-orange-300/8 [animation-delay:0.8s]" />
           <div className="hex-node hex-pulse absolute left-24 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/16 [animation-delay:1.6s]" />
-          <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-violet-300/26 bg-violet-200/12 [animation-delay:2.4s]" />
-          <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-violet-300/24 bg-violet-300/8 [animation-delay:3.2s]" />
+          <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2.4s]" />
+          <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-orange-300/24 bg-orange-300/8 [animation-delay:3.2s]" />
         </div>
       </div>
 
       <ReferrerAreaHeader active="dashboard" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/60 bg-violet-50/88 p-4 shadow-[0_28px_70px_rgba(5,3,12,0.4)] backdrop-blur-xl md:p-6">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-4 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-6">
         <div className="grid gap-5 xl:grid-cols-[1.55fr_0.9fr]">
           <div className="space-y-4">
             <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/50 bg-violet-100/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-violet-800">
+              <p className="inline-flex items-center gap-2 rounded-full border border-orange-300/50 bg-orange-100/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-orange-800">
                 <SparklesIcon className="h-3.5 w-3.5" />
                 Dein Überblick
               </p>
@@ -481,11 +481,11 @@ export default async function ReferrerDashboardPage({
               </h1>
             </div>
 
-            <div className="rounded-2xl border border-violet-200/70 bg-white/82 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">
+            <div className="rounded-2xl border border-orange-200/70 bg-white/82 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-orange-700">
                 Dein persönlicher Empfehlungslink
               </p>
-              <p className="mt-1 break-all rounded-lg border border-violet-200/70 bg-violet-50/70 px-2.5 py-1.5 font-mono text-[11px] text-zinc-700">
+              <p className="mt-1 break-all rounded-lg border border-orange-200/70 bg-orange-50/70 px-2.5 py-1.5 font-mono text-[11px] text-zinc-700">
                 {contactReferralLink}
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -493,7 +493,7 @@ export default async function ReferrerDashboardPage({
                   value={contactReferralLink}
                   idleLabel="Link kopieren"
                   copiedLabel="Link kopiert"
-                  className="rounded-lg border border-violet-300/55 bg-white px-3 py-1.5 text-xs font-medium text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100 hover:ring-1 hover:ring-violet-300/70"
+                  className="rounded-lg border border-orange-300/55 bg-white px-3 py-1.5 text-xs font-medium text-orange-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100 hover:ring-1 hover:ring-orange-300/70"
                 />
               </div>
             </div>
@@ -516,19 +516,19 @@ export default async function ReferrerDashboardPage({
               />
             </div>
 
-            <div className="rounded-xl border border-violet-200/70 bg-white/80 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)]">
+            <div className="rounded-xl border border-orange-200/70 bg-white/80 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)]">
               <div className="flex items-center justify-between gap-3">
                 <p className="inline-flex items-center gap-2 text-xs font-medium text-zinc-700">
-                  <BoltIcon className="h-4 w-4 text-violet-700" />
+                  <BoltIcon className="h-4 w-4 text-orange-700" />
                   Fortschritt zur nächsten Prämie
                 </p>
-                <p className="text-xs font-semibold text-violet-800">
+                <p className="text-xs font-semibold text-orange-800">
                   {nextReward?.progressPercent ?? 0} %
                 </p>
               </div>
-              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-violet-100">
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-orange-100">
                 <div
-                  className="h-full rounded-full bg-violet-500 shadow-[0_0_12px_rgba(126,87,255,0.45)] transition-all"
+                  className="h-full rounded-full bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.32)] transition-all"
                   style={{ width: `${nextReward?.progressPercent ?? 0}%` }}
                 />
               </div>
@@ -543,7 +543,7 @@ export default async function ReferrerDashboardPage({
             />
           </div>
 
-          <aside className="overflow-hidden rounded-3xl border border-violet-200/70 bg-white/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+          <aside className="overflow-hidden rounded-3xl border border-orange-200/70 bg-white/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
             <AdvisorBusinessImage
               imageUrl={advisorBanner.avatarUrl}
               name={advisorBanner.displayName}
@@ -554,7 +554,7 @@ export default async function ReferrerDashboardPage({
                 <div>
                   <p className="text-lg font-semibold text-zinc-900">{advisorBanner.displayName}</p>
                 </div>
-              <div className="mx-auto h-px w-24 bg-violet-200/80" />
+              <div className="mx-auto h-px w-24 bg-orange-200/80" />
               <div className="space-y-1.5 text-sm">
                 <p className="font-medium text-zinc-800">
                   {advisorBanner.phone ?? "Telefon auf Anfrage"}
@@ -565,7 +565,7 @@ export default async function ReferrerDashboardPage({
           </aside>
         </div>
 
-        <div className="my-5 h-px bg-violet-200/70" />
+        <div className="my-5 h-px bg-orange-200/70" />
 
           <div className="grid gap-4 xl:grid-cols-[0.86fr_1.14fr]">
             <div className="rounded-3xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_0%,rgba(255,230,170,0.18),transparent_42%),linear-gradient(165deg,rgba(34,28,22,0.95),rgba(17,14,12,0.96))] p-3 shadow-[inset_0_1px_0_rgba(255,240,210,0.14),0_24px_46px_rgba(10,8,6,0.58)] md:p-4">
@@ -584,15 +584,15 @@ export default async function ReferrerDashboardPage({
               </div>
             </div>
 
-            <aside className="rounded-3xl border border-violet-200/70 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_16px_30px_rgba(10,6,20,0.2)]">
+            <aside className="rounded-3xl border border-orange-200/70 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_16px_30px_rgba(10,6,20,0.2)]">
               <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900">
-                <SparklesIcon className="h-4 w-4 text-violet-700" />
+                <SparklesIcon className="h-4 w-4 text-orange-700" />
                 Dein nächstes Ziel
               </h3>
 
               <div className="mt-3 space-y-3">
-                <div className="rounded-2xl border border-violet-200/70 bg-violet-50/80 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+                <div className="rounded-2xl border border-orange-200/70 bg-orange-50/80 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
                     Letzte Empfehlungen
                   </p>
                   <div className="mt-2 space-y-2">
@@ -602,7 +602,7 @@ export default async function ReferrerDashboardPage({
                       recentReferrals.map((entry) => (
                         <div
                           key={entry.id}
-                          className="flex items-center justify-between rounded-lg border border-violet-200/70 bg-white/88 px-2.5 py-1.5"
+                          className="flex items-center justify-between rounded-lg border border-orange-200/70 bg-white/88 px-2.5 py-1.5"
                         >
                           <p className="truncate pr-2 text-xs font-medium text-zinc-900">{entry.name}</p>
                           <span
@@ -616,8 +616,8 @@ export default async function ReferrerDashboardPage({
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-violet-200/70 bg-violet-50/80 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+                <div className="rounded-2xl border border-orange-200/70 bg-orange-50/80 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
                     Levelziel
                   </p>
                   <p className="mt-1 text-sm font-semibold text-zinc-900">

@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+﻿import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 function getSupabaseConfig() {
@@ -64,10 +64,17 @@ export async function updateSession(request: NextRequest) {
     pathname === "/login" ||
     pathname === "/signup" ||
     pathname === "/berater/login" ||
+    pathname === "/berater/signup" ||
     pathname === "/empfehler/login";
 
+  const isAdvisorActivationRoute = pathname.startsWith("/berater/aktivierung");
   const isAdvisorProtectedRoute =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/berater/dashboard");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/berater/dashboard") ||
+    (pathname.startsWith("/berater/") &&
+      pathname !== "/berater/login" &&
+      pathname !== "/berater/signup" &&
+      !isAdvisorActivationRoute);
   const isReferrerProtectedRoute =
     pathname.startsWith("/referrer") || pathname.startsWith("/empfehler/dashboard");
   const isProtectedRoute = isAdvisorProtectedRoute || isReferrerProtectedRoute;
@@ -91,12 +98,74 @@ export async function updateSession(request: NextRequest) {
 
       const role = (profile as { role?: string } | null)?.role ?? null;
       const dashboardUrl = request.nextUrl.clone();
+      if (role === "referrer") {
+        dashboardUrl.pathname = "/empfehler/dashboard";
+        return NextResponse.redirect(dashboardUrl);
+      }
+
+      const { data: advisorRow } = await supabase
+        .from("advisors")
+        .select("id, account_status")
+        .eq("owner_user_id", user.id)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      const status =
+        (advisorRow as { account_status?: string | null } | null)
+          ?.account_status ?? "registered";
+
       dashboardUrl.pathname =
-        role === "referrer" ? "/empfehler/dashboard" : "/berater/dashboard";
+        status === "setup_paid" || status === "active_paid"
+          ? "/berater/dashboard"
+          : "/berater/aktivierung";
       return NextResponse.redirect(dashboardUrl);
     } catch {
-      // Bei temporären Netzwerkproblemen nicht abstürzen,
-      // sondern Seite normal ausliefern.
+      // Soft-fail in middleware, page-level guards still handle redirect.
+    }
+  }
+
+  if (!authFetchFailed && user && (isAdvisorProtectedRoute || isAdvisorActivationRoute)) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const role = (profile as { role?: string } | null)?.role ?? null;
+      if (role === "referrer") {
+        const target = request.nextUrl.clone();
+        target.pathname = "/empfehler/dashboard";
+        return NextResponse.redirect(target);
+      }
+
+      const { data: advisorRow } = await supabase
+        .from("advisors")
+        .select("id, account_status")
+        .eq("owner_user_id", user.id)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      const status =
+        (advisorRow as { account_status?: string | null } | null)
+          ?.account_status ?? "registered";
+      const canAccessAdvisorApp = status === "setup_paid" || status === "active_paid";
+
+      if (!canAccessAdvisorApp && isAdvisorProtectedRoute) {
+        const target = request.nextUrl.clone();
+        target.pathname = "/berater/aktivierung";
+        return NextResponse.redirect(target);
+      }
+
+      if (canAccessAdvisorApp && isAdvisorActivationRoute) {
+        const target = request.nextUrl.clone();
+        target.pathname = "/berater/dashboard";
+        return NextResponse.redirect(target);
+      }
+    } catch {
+      // Soft-fail in middleware; layouts/pages enforce redirect too.
     }
   }
 

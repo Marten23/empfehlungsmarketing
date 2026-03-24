@@ -1,4 +1,4 @@
-﻿import { revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +8,7 @@ import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header"
 import { AdvisorBusinessImageUploader } from "@/app/berater/einstellungen/advisor-business-image-uploader";
 import { PreviewDialogTrigger } from "@/app/berater/einstellungen/preview-dialog-trigger";
 import { WelcomeTextField } from "@/app/berater/einstellungen/welcome-text-field";
+import { requireAdvisorAppAccess } from "@/lib/auth/require-advisor-app-access";
 import {
   SparklesIcon,
   TrophyIcon,
@@ -407,6 +408,7 @@ async function removeAdvisorWelcomeVideoAction() {
 }
 
 export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
+  await requireAdvisorAppAccess();
   const params = await searchParams;
   const { supabase, advisorContext } = await getCurrentAuthContext();
 
@@ -493,11 +495,11 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
   }
 
   const inputClass =
-    "h-9 rounded-xl border border-violet-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-all duration-300 hover:border-violet-400/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200/80";
+    "h-9 rounded-xl border border-orange-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-all duration-300 hover:border-orange-400/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200/80";
   const panelClass =
-    "rounded-2xl border border-violet-200/65 bg-white/86 p-3 md:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.94)]";
+    "rounded-2xl border border-orange-200/65 bg-white/86 p-3 md:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.94)]";
   const primaryButtonClass =
-    "mt-1 inline-flex w-fit items-center rounded-xl border border-violet-300/50 bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500";
+    "mt-1 inline-flex w-fit items-center rounded-xl border border-orange-300/50 bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500";
 
   const previewName = contactName || advisorContext.advisorName || "Berater";
   const previewPhone = contactPhone || "Telefon auf Anfrage";
@@ -507,14 +509,14 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
 
   return (
     <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-3 p-4 md:gap-4 md:p-6">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,rgba(170,130,255,0.16),transparent_52%),radial-gradient(circle_at_15%_0%,rgba(126,87,255,0.26),transparent_42%),radial-gradient(circle_at_85%_8%,rgba(159,124,255,0.2),transparent_40%),linear-gradient(180deg,#1b1230_0%,#140d26_100%)]" />
-      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-24" />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_8%_4%,rgba(255,157,66,0.2),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(96,165,250,0.18),transparent_38%),radial-gradient(circle_at_50%_120%,rgba(139,92,246,0.09),transparent_48%),linear-gradient(180deg,#fcfcff_0%,#f6f8ff_45%,#edf2ff_100%)]" />
+      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-[0.1] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0.1)_36%,rgba(0,0,0,0.02)_100%)]" />
 
       <AdvisorAreaHeader active="einstellungen" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/55 bg-violet-50/88 p-4 shadow-[0_24px_60px_rgba(5,3,12,0.38)] backdrop-blur-xl md:p-5">
-        <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/35 text-violet-800">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-4 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-5">
+        <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/45 bg-orange-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-300/35 text-orange-800">
             <SparklesIcon className="h-3.5 w-3.5" />
           </span>
           Einstellungen
@@ -527,7 +529,7 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
         </p>
         <Link
           href="/berater/dashboard"
-          className="mt-3 inline-flex items-center rounded-xl border border-violet-300/60 bg-white/85 px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100"
+          className="mt-3 inline-flex items-center rounded-xl border border-orange-300/60 bg-white/85 px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100"
         >
           Zurück zum Dashboard
         </Link>
@@ -572,7 +574,7 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
       <section className="relative z-10">
         <article className={panelClass}>
           <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-zinc-900">
-            <UsersIcon className="h-4 w-4 text-violet-700" />
+            <UsersIcon className="h-4 w-4 text-orange-700" />
             Einstellungen Neukontakt-Linkseite
           </h2>
           <p className="mt-1 text-sm text-zinc-600">
@@ -581,8 +583,8 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
 
           <div className="mt-4 grid gap-4">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-              <section className="rounded-2xl border border-violet-200/70 bg-violet-50/65 p-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-violet-700">Beraterprofil & Bild</h3>
+              <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Beraterprofil & Bild</h3>
                 <form action={saveAdvisorContactSettingsAction} className="mt-2.5 grid gap-2">
                   <label className="grid gap-1 text-sm text-zinc-700">
                     Anzeigename
@@ -601,7 +603,7 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                   <button type="submit" className={primaryButtonClass}>Beraterprofil speichern</button>
                 </form>
 
-                <div className="mt-3 rounded-xl border border-violet-200/70 bg-white/80 p-2.5">
+                <div className="mt-3 rounded-xl border border-orange-200/70 bg-white/80 p-2.5">
                   <AdvisorBusinessImageUploader
                     action={uploadAdvisorContactImageAction}
                     currentImageUrl={contactAvatarUrl || null}
@@ -612,9 +614,9 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
               </section>
 
               <div className="grid gap-4 self-start">
-                <section className="rounded-2xl border border-violet-200/70 bg-violet-50/65 p-2.5">
-                  <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-violet-700">
-                    <TrophyIcon className="h-4 w-4 text-violet-700" />
+                <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-2.5">
+                  <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-orange-700">
+                    <TrophyIcon className="h-4 w-4 text-orange-700" />
                     Level & Punktevergabe
                   </h3>
                   <form action={saveGamificationSettingsAction} className="mt-2 grid gap-1.5">
@@ -664,8 +666,8 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                   </form>
                 </section>
 
-                <section className="rounded-2xl border border-violet-200/70 bg-violet-50/65 p-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-violet-700">Vorschau-Link</h3>
+                <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Vorschau-Link</h3>
                   <p className="mt-1 text-sm text-zinc-600">
                     Öffnen Sie die Neukontakt-Linkseite in einem separaten Fenster aus Kundensicht.
                   </p>
@@ -686,8 +688,8 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
             </div>
 
             <div className="grid gap-4 xl:grid-cols-2">
-              <section className="rounded-2xl border border-violet-200/70 bg-violet-50/65 p-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-violet-700">Begrüßungstext & Video-Freigabe</h3>
+              <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Begrüßungstext & Video-Freigabe</h3>
                 <form action={saveAdvisorPresentationSettingsAction} className="mt-2.5 grid gap-2">
                   <WelcomeTextField
                     name="welcome_text"
@@ -720,14 +722,14 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                 </form>
               </section>
 
-              <section className="rounded-2xl border border-violet-200/70 bg-violet-50/65 p-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-violet-700">Video hochladen</h3>
+              <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Video hochladen</h3>
                 <form action={uploadAdvisorWelcomeVideoAction} className="mt-2.5 grid gap-2">
-                  <p className="rounded-lg border border-violet-200/70 bg-white/85 px-2.5 py-1.5 text-xs text-zinc-700">
+                  <p className="rounded-lg border border-orange-200/70 bg-white/85 px-2.5 py-1.5 text-xs text-zinc-700">
                     Status: {effectiveWelcomeVideoUrl ? "Video vorhanden" : "Noch kein Video hochgeladen"}
                   </p>
                   {effectiveWelcomeVideoUrl ? (
-                    <p className="break-all rounded-lg border border-violet-200/70 bg-white/85 px-2.5 py-1.5 text-[11px] text-zinc-600">
+                    <p className="break-all rounded-lg border border-orange-200/70 bg-white/85 px-2.5 py-1.5 text-[11px] text-zinc-600">
                       URL: {effectiveWelcomeVideoUrl}
                     </p>
                   ) : null}
@@ -735,10 +737,10 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                     type="file"
                     name="welcome_video_file"
                     accept="video/*"
-                    className="rounded-xl border border-violet-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-violet-800"
+                    className="rounded-xl border border-orange-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 file:mr-3 file:rounded-lg file:border-0 file:bg-orange-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-orange-800"
                   />
                   <div className="flex flex-wrap gap-2">
-                    <button type="submit" className="inline-flex w-fit items-center rounded-xl border border-violet-300/50 bg-white px-3 py-1.5 text-xs font-semibold text-violet-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-100">Video hochladen</button>
+                    <button type="submit" className="inline-flex w-fit items-center rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-xs font-semibold text-orange-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100">Video hochladen</button>
                     {effectiveWelcomeVideoUrl ? (
                       <button
                         type="submit"

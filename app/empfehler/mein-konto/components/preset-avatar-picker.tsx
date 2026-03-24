@@ -43,7 +43,7 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
       onClick={() => setIsOpen(false)}
     >
       <div
-        className="flex h-[min(88vh,860px)] w-[min(94vw,1120px)] flex-col rounded-3xl border border-violet-300/45 bg-violet-50/95 p-5 shadow-[0_34px_80px_rgba(10,4,24,0.5)] md:p-6"
+        className="flex h-[min(88vh,860px)] w-[min(94vw,1120px)] flex-col rounded-3xl border border-orange-300/45 bg-orange-50/95 p-5 shadow-[0_34px_80px_rgba(10,4,24,0.5)] md:p-6"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -51,7 +51,7 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="rounded-lg border border-violet-300/55 bg-white px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-100"
+            className="rounded-lg border border-orange-300/55 bg-white px-2.5 py-1 text-xs font-semibold text-orange-800 hover:bg-orange-100"
           >
             Abbrechen
           </button>
@@ -63,15 +63,15 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
             return (
               <section
                 key={group.key}
-                className="overflow-hidden rounded-xl border border-violet-200/75 bg-white/80"
+                className="overflow-hidden rounded-xl border border-orange-200/75 bg-white/80"
               >
                 <button
                   type="button"
                   onClick={() => setOpenGroupKey((prev) => (prev === group.key ? "" : group.key))}
                   className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm font-semibold transition-colors ${
                     isOpenGroup
-                      ? "bg-violet-100/80 text-violet-900"
-                      : "bg-white text-zinc-800 hover:bg-violet-50"
+                      ? "bg-orange-100/80 text-orange-900"
+                      : "bg-white text-zinc-800 hover:bg-orange-50"
                   }`}
                 >
                   <span>{group.label}</span>
@@ -89,8 +89,8 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
                           onClick={() => setSelectedImage(img)}
                           className={`group relative overflow-hidden rounded-2xl border bg-white p-2 text-center transition-all ${
                             active
-                              ? "border-violet-500 shadow-[0_0_0_1px_rgba(124,58,237,0.55),0_14px_30px_rgba(91,33,182,0.22)]"
-                              : "border-violet-200/70 hover:-translate-y-0.5 hover:border-violet-400/70 hover:shadow-[0_10px_22px_rgba(91,33,182,0.16)]"
+                              ? "border-orange-500 shadow-[0_0_0_1px_rgba(249,115,22,0.4),0_14px_30px_rgba(249,115,22,0.16)]"
+                              : "border-orange-200/70 hover:-translate-y-0.5 hover:border-orange-400/70 hover:shadow-[0_10px_22px_rgba(249,115,22,0.12)]"
                           }`}
                         >
                           <div className="flex justify-center pb-1.5">
@@ -98,12 +98,12 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
                             <img
                               src={img}
                               alt="Preset-Profilbild"
-                              className="h-20 w-20 rounded-full border border-violet-200/80 object-cover shadow-[0_8px_18px_rgba(76,29,149,0.16)]"
+                              className="h-20 w-20 rounded-full border border-orange-200/80 object-cover shadow-[0_8px_18px_rgba(249,115,22,0.12)]"
                             />
                           </div>
                           <div className="px-1 py-1 text-[11px] text-zinc-700">{img.split("/").pop()}</div>
                           {active ? (
-                            <span className="absolute right-2 top-2 rounded-full border border-violet-500/70 bg-violet-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                            <span className="absolute right-2 top-2 rounded-full border border-orange-500/70 bg-orange-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                               Ausgewählt
                             </span>
                           ) : null}
@@ -117,7 +117,7 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
           })}
 
           {!openGroupKey ? (
-            <p className="rounded-xl border border-violet-200/70 bg-white/70 px-3 py-2 text-xs text-zinc-600">
+            <p className="rounded-xl border border-orange-200/70 bg-white/70 px-3 py-2 text-xs text-zinc-600">
               Wähle eine Kategorie, um Bilder anzuzeigen.
             </p>
           ) : null}
@@ -127,7 +127,7 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="rounded-xl border border-violet-300/55 bg-white px-3 py-1.5 text-sm font-semibold text-violet-800 transition-all hover:bg-violet-100"
+            className="rounded-xl border border-orange-300/55 bg-white px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all hover:bg-orange-100"
           >
             Abbrechen
           </button>
@@ -135,7 +135,7 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
             type="submit"
             form={formId}
             disabled={!selectedImage}
-            className="rounded-xl border border-violet-300/50 bg-violet-600 px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-55"
+            className="rounded-xl border border-orange-300/50 bg-orange-600 px-3 py-1.5 text-sm font-semibold text-white transition-all hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-55"
           >
             Bild übernehmen
           </button>
@@ -152,14 +152,14 @@ export function PresetAvatarPicker({ groups, avatarUrl, initials, action }: Pres
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="group relative inline-flex h-32 w-32 items-center justify-center overflow-hidden rounded-3xl border border-violet-300/70 bg-white/85 shadow-[0_20px_40px_rgba(76,29,149,0.22)] transition-all hover:-translate-y-0.5 hover:border-violet-400/80"
+        className="group relative inline-flex h-32 w-32 items-center justify-center overflow-hidden rounded-3xl border border-orange-300/70 bg-white/85 shadow-[0_20px_40px_rgba(249,115,22,0.18)] transition-all hover:-translate-y-0.5 hover:border-orange-400/80"
         title="Profilbild ändern"
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={avatarUrl} alt="Profilbild" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-3xl font-semibold text-violet-800">{initials}</span>
+          <span className="text-3xl font-semibold text-orange-800">{initials}</span>
         )}
         <span className="pointer-events-none absolute inset-x-2 bottom-2 rounded-lg bg-zinc-950/65 px-2 py-1 text-center text-[11px] font-semibold text-white opacity-90">
           Bild ändern

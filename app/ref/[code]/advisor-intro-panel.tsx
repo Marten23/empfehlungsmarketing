@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { AdvisorBusinessImage } from "@/app/components/advisor-business-image";
@@ -29,8 +29,8 @@ export function AdvisorIntroPanel({
   }, [hasVideo, showVideo]);
 
   return (
-    <div className="rounded-3xl border border-violet-200/70 bg-white/88 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.96),0_14px_30px_rgba(63,42,108,0.12)]">
-      <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-violet-700">
+    <div className="rounded-3xl border border-orange-200/70 bg-white/88 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.96),0_14px_30px_rgba(63,42,108,0.12)]">
+      <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-orange-700">
         {mediaLabel}
       </p>
 
@@ -52,7 +52,7 @@ export function AdvisorIntroPanel({
             </div>
 
             <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-              <div className="h-full overflow-hidden rounded-2xl border border-violet-200/70 bg-black shadow-[0_16px_30px_rgba(58,41,100,0.22)]">
+              <div className="h-full overflow-hidden rounded-2xl border border-orange-200/70 bg-black shadow-[0_16px_30px_rgba(58,41,100,0.22)]">
                 <video
                   controls
                   preload="metadata"
@@ -69,7 +69,7 @@ export function AdvisorIntroPanel({
             <button
               type="button"
               onClick={() => setShowVideo((current) => !current)}
-              className="h-11 w-11 rounded-full border border-violet-300/65 bg-violet-600 text-lg font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:scale-105 hover:bg-violet-500"
+              className="h-11 w-11 rounded-full border border-orange-300/65 bg-orange-600 text-lg font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:scale-105 hover:bg-orange-500"
               aria-label={showVideo ? "Zum Bild wechseln" : "Zum Video wechseln"}
               title={showVideo ? "Zum Bild wechseln" : "Zum Video wechseln"}
             >
@@ -82,7 +82,7 @@ export function AdvisorIntroPanel({
       <div className="mt-3 text-center">
         <p className="text-lg font-semibold text-zinc-900">{displayName}</p>
         <p className="text-xs text-zinc-600">Ihr zuständiger Berater</p>
-        <div className="mx-auto mt-2 h-px w-24 bg-violet-200/80" />
+        <div className="mx-auto mt-2 h-px w-24 bg-orange-200/80" />
         <div className="mt-2 space-y-1.5">
           {phone ? (
             <p className="text-sm font-medium text-zinc-800">{phone}</p>
@@ -100,8 +100,8 @@ export function AdvisorIntroPanel({
             onClick={() => setShowVideo(false)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition ${
               !showVideo
-                ? "bg-violet-600 text-white"
-                : "bg-violet-100 text-violet-800"
+                ? "bg-orange-600 text-white"
+                : "bg-orange-100 text-orange-800"
             }`}
           >
             Bild
@@ -111,8 +111,8 @@ export function AdvisorIntroPanel({
             onClick={() => setShowVideo(true)}
             className={`rounded-full px-3 py-1 text-xs font-medium transition ${
               showVideo
-                ? "bg-violet-600 text-white"
-                : "bg-violet-100 text-violet-800"
+                ? "bg-orange-600 text-white"
+                : "bg-orange-100 text-orange-800"
             }`}
           >
             Video

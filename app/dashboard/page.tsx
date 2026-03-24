@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAdvisorContext } from "@/lib/auth/advisor";
 import { listDashboardReferrals } from "@/lib/queries/referrals";
@@ -146,8 +146,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,rgba(170,130,255,0.16),transparent_52%),radial-gradient(circle_at_15%_0%,rgba(126,87,255,0.26),transparent_42%),radial-gradient(circle_at_85%_8%,rgba(159,124,255,0.2),transparent_40%),linear-gradient(180deg,#1b1230_0%,#140d26_100%)]" />
-      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-24" />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_8%_4%,rgba(255,157,66,0.2),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(96,165,250,0.18),transparent_38%),radial-gradient(circle_at_50%_120%,rgba(139,92,246,0.09),transparent_48%),linear-gradient(180deg,#fcfcff_0%,#f6f8ff_45%,#edf2ff_100%)]" />
+      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-[0.1] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0.1)_36%,rgba(0,0,0,0.02)_100%)]" />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[5%] top-[20%] h-[220px] w-[260px] opacity-72">
           <div className="hex-node absolute left-0 top-8 h-14 w-14 border border-[#b788ff]/70 bg-[#6E44FF]/18" />
@@ -163,11 +163,11 @@ export default async function DashboardPage() {
 
       <AdvisorAreaHeader active="dashboard" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-6">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/35 text-violet-800">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/45 bg-orange-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-300/35 text-orange-800">
                 <BoltIcon className="h-3.5 w-3.5" />
               </span>
               Beraterbereich
@@ -186,20 +186,20 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Offene Empfehlungen</p>
+          <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-orange-700">Offene Empfehlungen</p>
             <p className="mt-2 text-3xl font-semibold text-zinc-900">{openCount}</p>
           </article>
-          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Erfolgreiche Empfehlungen</p>
+          <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-orange-700">Erfolgreiche Empfehlungen</p>
             <p className="mt-2 text-3xl font-semibold text-emerald-700">{closingCount}</p>
           </article>
-          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Aktive Empfehler</p>
+          <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-orange-700">Aktive Empfehler</p>
             <p className="mt-2 text-3xl font-semibold text-zinc-900">{activeReferrerCount}</p>
           </article>
-          <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-            <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Offene Einlösungen</p>
+          <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="text-xs font-medium uppercase tracking-wide text-orange-700">Offene Einlösungen</p>
             <p className="mt-2 text-3xl font-semibold text-zinc-900">{openRedemptionCount}</p>
           </article>
         </div>
@@ -228,7 +228,7 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-4 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-5">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-4 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-5">
         <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-3xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_0%,rgba(255,230,170,0.18),transparent_42%),linear-gradient(165deg,rgba(34,28,22,0.95),rgba(17,14,12,0.96))] p-3 shadow-[inset_0_1px_0_rgba(255,240,210,0.14),0_24px_46px_rgba(10,8,6,0.58)] md:p-4">
             <div className="flex justify-center">
@@ -249,32 +249,32 @@ export default async function DashboardPage() {
           </div>
 
           <div className="grid gap-4">
-            <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
                     <UsersIcon className="h-4 w-4" />
                   </span>
                   Neueste Empfehlungen
                 </h2>
                 <Link
                   href="/berater/empfehlungen"
-                  className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-colors hover:text-violet-900"
+                  className="group inline-flex items-center gap-1 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-colors hover:text-orange-900"
                 >
                   Alle ansehen
                   <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </Link>
               </div>
-              <div className="max-h-[240px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
+              <div className="max-h-[240px] overflow-auto rounded-xl border border-orange-100/80 bg-orange-50/65">
                 <table className="min-w-full text-sm">
-                  <thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur">
+                  <thead className="sticky top-0 bg-orange-100/90 text-left text-zinc-600 backdrop-blur">
                     <tr>
                       <th className="px-3 py-2">Kontakt</th>
                       <th className="px-3 py-2">Status</th>
                       <th className="px-3 py-2 text-right">Punkte</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-violet-100">
+                  <tbody className="divide-y divide-orange-100">
                     {latestReferrals.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-3 py-6 text-zinc-500">
@@ -283,7 +283,7 @@ export default async function DashboardPage() {
                       </tr>
                     ) : (
                       latestReferrals.map((row) => (
-                        <tr key={row.id} className="transition-colors duration-200 hover:bg-violet-100/65">
+                        <tr key={row.id} className="transition-colors duration-200 hover:bg-orange-100/65">
                           <td className="px-3 py-2 text-zinc-900">{getReferralName(row)}</td>
                           <td className="px-3 py-2">
                             <span className={`rounded px-2 py-0.5 text-xs font-medium ring-1 ${statusBadgeClass(row.status)}`}>
@@ -305,32 +305,32 @@ export default async function DashboardPage() {
               </div>
             </article>
 
-            <article className="rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <article className="rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
                     <TrophyIcon className="h-4 w-4" />
                   </span>
                   Offene Einlösungen
                 </h2>
                 <Link
                   href="/berater/praemien"
-                  className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-colors hover:text-violet-900"
+                  className="group inline-flex items-center gap-1 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-colors hover:text-orange-900"
                 >
                   Zu Prämien & Einlösungen
                   <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </Link>
               </div>
-              <div className="max-h-[240px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
+              <div className="max-h-[240px] overflow-auto rounded-xl border border-orange-100/80 bg-orange-50/65">
                 <table className="min-w-full text-sm">
-                  <thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur">
+                  <thead className="sticky top-0 bg-orange-100/90 text-left text-zinc-600 backdrop-blur">
                     <tr>
                       <th className="px-3 py-2">Empfehler</th>
                       <th className="px-3 py-2">Prämie</th>
                       <th className="px-3 py-2 text-right">Punkte</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-violet-100">
+                  <tbody className="divide-y divide-orange-100">
                     {latestOpenRedemptions.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="px-3 py-6 text-zinc-500">
@@ -345,7 +345,7 @@ export default async function DashboardPage() {
                         const rewardName =
                           row.reward?.title || row.reward?.name || "Unbekannte Prämie";
                         return (
-                          <tr key={row.id} className="transition-colors duration-200 hover:bg-violet-100/65">
+                          <tr key={row.id} className="transition-colors duration-200 hover:bg-orange-100/65">
                             <td className="px-3 py-2 text-zinc-900">{referrerName || "-"}</td>
                             <td className="px-3 py-2 text-zinc-700">{rewardName}</td>
                             <td className="px-3 py-2 text-right font-semibold text-zinc-900">

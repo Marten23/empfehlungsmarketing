@@ -142,3 +142,10 @@ export async function getBillingDebugSnapshot(
   };
 }
 
+export async function getQualifyingLiveAdvisorCount(
+  supabase: SupabaseClient,
+): Promise<number> {
+  const { data, error } = await supabase.rpc("get_qualifying_live_advisor_count");
+  if (error) throw normalizeSupabaseError(error);
+  return Number(data ?? 0);
+}

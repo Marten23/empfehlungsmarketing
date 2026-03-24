@@ -45,9 +45,9 @@ export function SignupForm({
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-violet-200/60 bg-violet-50/85 p-3 text-sm text-zinc-800">
+        <div className="rounded-xl border border-orange-200/60 bg-orange-50/85 p-3 text-sm text-zinc-800">
           <p className="inline-flex items-center gap-2 font-semibold text-zinc-900">
-            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-violet-300/45 bg-violet-100 text-violet-700">
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg border border-orange-300/45 bg-orange-100 text-orange-700">
               <UsersIcon className="h-3.5 w-3.5" />
             </span>
             Berater-Konto erstellen
@@ -65,7 +65,7 @@ export function SignupForm({
           name="email"
           required
           autoComplete="email"
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="name@beispiel.de"
         />
       </label>
@@ -76,7 +76,7 @@ export function SignupForm({
           type="text"
           name="full_name"
           required
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="Max Mustermann"
         />
       </label>
@@ -87,7 +87,7 @@ export function SignupForm({
           type="tel"
           name="phone"
           required
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="+49..."
         />
       </label>
@@ -99,7 +99,7 @@ export function SignupForm({
           name="password"
           required
           autoComplete="new-password"
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="Mindestens 6 Zeichen"
         />
       </label>
@@ -111,7 +111,7 @@ export function SignupForm({
           name="password_repeat"
           required
           autoComplete="new-password"
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="Passwort erneut eingeben"
         />
       </label>
@@ -134,7 +134,7 @@ export function SignupForm({
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex items-center justify-center gap-2 rounded-xl border border-violet-300/40 bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 disabled:opacity-50"
+        className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-300/40 bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500 disabled:opacity-50"
       >
         <SparklesIcon className="h-4 w-4" />
         {isPending

@@ -62,20 +62,20 @@ export function ReferrerInbox({
 
   return (
     <>
-      <div className="rounded-2xl border border-violet-200/70 bg-violet-50/80 p-3">
+      <div className="rounded-2xl border border-orange-200/70 bg-orange-50/80 p-3">
         <div className="flex items-center justify-between gap-2">
-          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-violet-700">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-orange-700">
             <SparklesIcon className="h-4 w-4" />
             Mitteilungen
           </p>
-          <span className="rounded-full border border-violet-300/55 bg-white px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+          <span className="rounded-full border border-orange-300/55 bg-white px-2 py-0.5 text-[10px] font-semibold text-orange-700">
             {notifications.length}
           </span>
         </div>
 
         <div className="mt-2 max-h-56 space-y-2 overflow-y-auto pr-1">
           {notifications.length === 0 ? (
-            <p className="rounded-lg border border-violet-200/70 bg-white/85 px-2.5 py-2 text-xs text-zinc-600">
+            <p className="rounded-lg border border-orange-200/70 bg-white/85 px-2.5 py-2 text-xs text-zinc-600">
               Keine neuen Mitteilungen.
             </p>
           ) : (
@@ -84,8 +84,8 @@ export function ReferrerInbox({
                 key={item.id}
                 className={`flex items-start gap-2 rounded-lg border px-2.5 py-2 ${
                   item.isRead
-                    ? "border-violet-200/65 bg-white/78"
-                    : "border-violet-400/80 bg-violet-100/85 ring-1 ring-violet-300/65"
+                    ? "border-orange-200/65 bg-white/78"
+                    : "border-orange-400/80 bg-orange-100/85 ring-1 ring-orange-300/65"
                 }`}
               >
                 <button
@@ -96,7 +96,7 @@ export function ReferrerInbox({
                   <div className="flex items-center justify-between gap-2">
                     <p className="truncate text-xs font-semibold text-zinc-900">{item.title}</p>
                     {!item.isRead ? (
-                      <span className="rounded-full border border-violet-400/70 bg-violet-200/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-800">
+                      <span className="rounded-full border border-orange-400/70 bg-orange-200/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-800">
                         Neu
                       </span>
                     ) : null}
@@ -129,7 +129,7 @@ export function ReferrerInbox({
           onClick={() => setOpenNotificationId(null)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl border border-violet-200/80 bg-white p-4 shadow-[0_24px_48px_rgba(10,6,20,0.35)]"
+            className="w-full max-w-lg rounded-2xl border border-orange-200/80 bg-white p-4 shadow-[0_24px_48px_rgba(10,6,20,0.35)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">
@@ -142,7 +142,7 @@ export function ReferrerInbox({
               <button
                 type="button"
                 onClick={() => setOpenNotificationId(null)}
-                className="rounded-lg border border-violet-300/60 bg-white px-2 py-1 text-xs font-semibold text-violet-800 transition hover:bg-violet-50"
+                className="rounded-lg border border-orange-300/60 bg-white px-2 py-1 text-xs font-semibold text-orange-800 transition hover:bg-orange-50"
               >
                 Schließen
               </button>
@@ -156,7 +156,7 @@ export function ReferrerInbox({
                   <input type="hidden" name="survey_type" value={openSurvey.surveyType} />
 
                   {openSurvey.description ? (
-                    <p className="rounded-lg border border-violet-200/70 bg-violet-50/70 px-3 py-2 text-xs text-zinc-700">
+                    <p className="rounded-lg border border-orange-200/70 bg-orange-50/70 px-3 py-2 text-xs text-zinc-700">
                       {openSurvey.description}
                     </p>
                   ) : null}
@@ -164,7 +164,7 @@ export function ReferrerInbox({
                   {openSurvey.surveyType === "preset" ? (
                     <div className="grid gap-2">
                       {openSurvey.options.map((option) => (
-                        <label key={option.id} className="inline-flex items-center gap-2 rounded-lg border border-violet-200/70 bg-white px-2.5 py-2 text-sm text-zinc-800">
+                        <label key={option.id} className="inline-flex items-center gap-2 rounded-lg border border-orange-200/70 bg-white px-2.5 py-2 text-sm text-zinc-800">
                           <input type="checkbox" name="selected_option_ids" value={option.id} />
                           <span>{option.text}</span>
                         </label>
@@ -177,7 +177,7 @@ export function ReferrerInbox({
                         <textarea
                           name="response_note"
                           rows={2}
-                          className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
+                          className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
                           placeholder="Kurzer Hinweis zu Ihrer Auswahl"
                         />
                       </label>
@@ -189,7 +189,7 @@ export function ReferrerInbox({
                         name="free_suggestion"
                         required
                         rows={3}
-                        className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
+                        className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
                         placeholder={
                           openSurvey.budgetLimitEur
                             ? `Wunschprämie bis maximal ${openSurvey.budgetLimitEur} €`
@@ -201,7 +201,7 @@ export function ReferrerInbox({
 
                   <button
                     type="submit"
-                    className="mt-1 w-fit rounded-xl border border-violet-300/50 bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-500"
+                    className="mt-1 w-fit rounded-xl border border-orange-300/50 bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-orange-500"
                   >
                     Antwort absenden
                   </button>
@@ -211,7 +211,7 @@ export function ReferrerInbox({
                   <input type="hidden" name="notification_id" value={openNotification.id} />
                   <button
                     type="submit"
-                    className="rounded-xl border border-violet-300/50 bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-500"
+                    className="rounded-xl border border-orange-300/50 bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-orange-500"
                   >
                     Als gelesen markieren
                   </button>

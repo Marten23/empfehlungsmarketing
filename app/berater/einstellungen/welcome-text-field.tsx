@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 
@@ -31,7 +31,7 @@ export function WelcomeTextField({
         maxLength={maxLength}
         rows={rows}
         onChange={(event) => setValue(event.target.value)}
-        className="rounded-xl border border-violet-300/55 bg-white px-3 py-2 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-all duration-300 hover:border-violet-400/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200/80"
+        className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-all duration-300 hover:border-orange-400/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200/80"
         placeholder={placeholder}
       />
       <span className="text-xs text-zinc-500">

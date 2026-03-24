@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -47,7 +47,7 @@ export function RewardEditModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-violet-300/60 bg-white text-base text-violet-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-50 hover:ring-1 hover:ring-violet-300/60"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-orange-300/60 bg-white text-base text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-50 hover:ring-1 hover:ring-orange-300/60"
         aria-label="Prämie bearbeiten"
         title="Prämie bearbeiten"
       >
@@ -61,17 +61,17 @@ export function RewardEditModal({
               onClick={() => setOpen(false)}
             >
               <div
-                className="w-full max-w-3xl overflow-hidden rounded-2xl border border-violet-200/80 bg-white shadow-[0_30px_80px_rgba(8,4,18,0.45)]"
+                className="w-full max-w-3xl overflow-hidden rounded-2xl border border-orange-200/80 bg-white shadow-[0_30px_80px_rgba(8,4,18,0.45)]"
                 onClick={(event) => event.stopPropagation()}
               >
-                <div className="flex items-center justify-between border-b border-violet-200/70 bg-violet-50/85 px-4 py-3">
+                <div className="flex items-center justify-between border-b border-orange-200/70 bg-orange-50/85 px-4 py-3">
                   <p className="text-sm font-semibold text-zinc-900">
                     Prämie bearbeiten: {reward.title || reward.name || "Prämie"}
                   </p>
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-lg border border-violet-300/60 bg-white px-2.5 py-1 text-xs font-semibold text-violet-800 transition hover:bg-violet-50"
+                    className="rounded-lg border border-orange-300/60 bg-white px-2.5 py-1 text-xs font-semibold text-orange-800 transition hover:bg-orange-50"
                   >
                     Abbrechen
                   </button>
@@ -205,7 +205,7 @@ export function RewardEditModal({
                     </label>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-violet-200/70 pt-3">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-orange-200/70 pt-3">
                     <button
                       type="submit"
                       formAction={deleteRewardAction}

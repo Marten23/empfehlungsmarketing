@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -34,7 +34,7 @@ export function SurveyOptionsBuilder({ inputClass }: SurveyOptionsBuilderProps) 
               <button
                 type="button"
                 onClick={() => removeRow(index)}
-                className="rounded-lg border border-violet-300/55 bg-white px-2.5 py-1.5 text-xs font-semibold text-violet-800 transition hover:bg-violet-50"
+                className="rounded-lg border border-orange-300/55 bg-white px-2.5 py-1.5 text-xs font-semibold text-orange-800 transition hover:bg-orange-50"
               >
                 Entfernen
               </button>
@@ -45,9 +45,9 @@ export function SurveyOptionsBuilder({ inputClass }: SurveyOptionsBuilderProps) 
       <button
         type="button"
         onClick={addRow}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300/55 bg-white px-2.5 py-1.5 text-xs font-semibold text-violet-800 transition hover:bg-violet-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-orange-300/55 bg-white px-2.5 py-1.5 text-xs font-semibold text-orange-800 transition hover:bg-orange-50"
       >
-        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-violet-300/65 text-[11px]">
+        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-orange-300/65 text-[11px]">
           +
         </span>
         Option hinzufügen

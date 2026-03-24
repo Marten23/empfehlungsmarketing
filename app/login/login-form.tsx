@@ -22,7 +22,7 @@ export function LoginForm() {
           name="email"
           required
           autoComplete="email"
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="name@beispiel.de"
         />
       </label>
@@ -34,7 +34,7 @@ export function LoginForm() {
           name="password"
           required
           autoComplete="current-password"
-          className="rounded-xl border border-violet-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-violet-300/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+          className="rounded-xl border border-orange-200/70 bg-white/95 px-3 py-2 text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-300 hover:border-orange-300/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200"
           placeholder="********"
         />
       </label>
@@ -48,14 +48,14 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-xl border border-violet-300/40 bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 disabled:opacity-50"
+        className="rounded-xl border border-orange-300/40 bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(91,61,200,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500 disabled:opacity-50"
       >
         {isPending ? "Anmeldung läuft..." : "Einloggen"}
       </button>
 
       <Link
         href="/passwort-vergessen"
-        className="text-center text-sm font-medium text-violet-700 underline decoration-violet-300/70 underline-offset-4 transition-colors hover:text-violet-900"
+        className="text-center text-sm font-medium text-orange-700 underline decoration-orange-300/70 underline-offset-4 transition-colors hover:text-orange-900"
       >
         Passwort vergessen?
       </Link>

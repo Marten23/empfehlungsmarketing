@@ -36,7 +36,7 @@ export function RedeemForm({
       <button
         type="submit"
         disabled={!canRedeem}
-        className="rounded-lg border border-violet-300/45 bg-violet-600 px-3 py-1.5 text-sm font-medium text-white shadow-[0_10px_20px_rgba(91,61,200,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 hover:shadow-[0_16px_28px_rgba(91,61,200,0.36)] disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-lg border border-orange-300/45 bg-orange-600 px-3 py-1.5 text-sm font-medium text-white shadow-[0_10px_20px_rgba(91,61,200,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500 hover:shadow-[0_16px_28px_rgba(91,61,200,0.36)] disabled:cursor-not-allowed disabled:opacity-40"
       >
         Prämie einlösen
       </button>

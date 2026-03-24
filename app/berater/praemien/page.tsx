@@ -1,4 +1,4 @@
-﻿
+
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -30,6 +30,7 @@ import {
   TrophyIcon,
 } from "@/app/empfehler/dashboard/components/icons";
 import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
+import { requireAdvisorAppAccess } from "@/lib/auth/require-advisor-app-access";
 
 const redemptionStatuses: RedemptionStatus[] = [
   "offen",
@@ -64,18 +65,19 @@ type AdvisorRewardsPageProps = {
 };
 
 const panelClass =
-  "relative z-10 rounded-2xl border border-violet-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]";
+  "relative z-10 rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]";
 const inputClass =
-  "rounded-lg border border-violet-300/55 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 hover:border-violet-400/70 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200/80";
+  "rounded-lg border border-orange-300/55 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 hover:border-orange-400/70 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-200/80";
 const hintClass = "mt-1 text-[11px] text-zinc-500";
 const primaryButtonClass =
-  "rounded-lg border border-violet-300/50 bg-violet-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500 hover:shadow-[0_12px_20px_rgba(76,29,149,0.25)]";
+  "rounded-lg border border-orange-300/50 bg-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500 hover:shadow-[0_12px_20px_rgba(249,115,22,0.2)]";
 const subtleButtonClass =
-  "rounded-lg border border-violet-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-50 hover:ring-1 hover:ring-violet-300/60";
+  "rounded-lg border border-orange-300/55 bg-white px-3 py-1.5 text-sm text-zinc-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-50 hover:ring-1 hover:ring-orange-300/60";
 
 export default async function AdvisorRewardsPage({
   searchParams,
 }: AdvisorRewardsPageProps) {
+  await requireAdvisorAppAccess();
   const params = await searchParams;
   const advisorContext = await getCurrentAdvisorContext();
   if (!advisorContext) {
@@ -268,8 +270,8 @@ export default async function AdvisorRewardsPage({
 
   return (
     <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_50%_35%,rgba(170,130,255,0.16),transparent_52%),radial-gradient(circle_at_15%_0%,rgba(126,87,255,0.26),transparent_42%),radial-gradient(circle_at_85%_8%,rgba(159,124,255,0.2),transparent_40%),linear-gradient(180deg,#1b1230_0%,#140d26_100%)]" />
-      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-24" />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_8%_4%,rgba(255,157,66,0.2),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(96,165,250,0.18),transparent_38%),radial-gradient(circle_at_50%_120%,rgba(139,92,246,0.09),transparent_48%),linear-gradient(180deg,#fcfcff_0%,#f6f8ff_45%,#edf2ff_100%)]" />
+      <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-[0.1] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0.1)_36%,rgba(0,0,0,0.02)_100%)]" />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[5%] top-[20%] h-[220px] w-[260px] opacity-72">
           <div className="hex-node absolute left-0 top-8 h-14 w-14 border border-[#b788ff]/70 bg-[#6E44FF]/18" />
@@ -285,11 +287,11 @@ export default async function AdvisorRewardsPage({
 
       <AdvisorAreaHeader active="praemien" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-violet-200/50 bg-violet-50/86 p-5 shadow-[0_24px_60px_rgba(5,3,12,0.36)] backdrop-blur-xl md:p-6">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-violet-300/45 bg-violet-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/35 text-violet-800">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/45 bg-orange-200/45 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-300/35 text-orange-800">
                 <GiftIcon className="h-3.5 w-3.5" />
               </span>
               Prämienbereich
@@ -300,10 +302,10 @@ export default async function AdvisorRewardsPage({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-violet-200/65 bg-violet-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-violet-700">
+          <div className="rounded-2xl border border-orange-200/65 bg-orange-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+            <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-orange-700">
               <SparklesIcon className="h-4 w-4" />
-              Kurzüberblick
+              KurzÜberblick
             </p>
             <p className="mt-1 text-sm font-medium text-zinc-800">Aktive Prämien: {activeRewardsCount}</p>
             <p className="mt-1 text-xs text-zinc-600">Offene Einlösungen: {openCount}</p>
@@ -313,13 +315,13 @@ export default async function AdvisorRewardsPage({
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
             href="/berater/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
+            className="inline-flex items-center gap-2 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90"
           >
             Zurück zum Dashboard
           </Link>
           <Link
             href="/berater/empfehlungen"
-            className="group inline-flex items-center gap-1 text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-all duration-300 hover:text-violet-900 hover:decoration-violet-500/90"
+            className="group inline-flex items-center gap-1 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90"
           >
             Zu Empfehlungen
             <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -328,15 +330,15 @@ export default async function AdvisorRewardsPage({
       </section>
       <section className="relative z-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <article className={panelClass}>
-          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Prämien gesamt</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-orange-700">Prämien gesamt</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{rewards.length}</p>
         </article>
         <article className={panelClass}>
-          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Aktiv</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-orange-700">Aktiv</p>
           <p className="mt-2 text-3xl font-semibold text-emerald-700">{activeRewardsCount}</p>
         </article>
         <article className={panelClass}>
-          <p className="text-xs font-medium uppercase tracking-wide text-violet-700">Inaktiv</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-orange-700">Inaktiv</p>
           <p className="mt-2 text-3xl font-semibold text-zinc-900">{inactiveRewardsCount}</p>
         </article>
         <SurveyOverviewTrigger
@@ -355,16 +357,16 @@ export default async function AdvisorRewardsPage({
               createRewardSurveyAction={createRewardSurveyAction}
             />
 
-            <aside className="rounded-xl border border-violet-200/70 bg-violet-50/65 p-3">
+            <aside className="rounded-xl border border-orange-200/70 bg-orange-50/65 p-3">
               <p className="text-sm font-semibold text-zinc-900">Letzte Umfragen</p>
               <div className="mt-2 space-y-2">
                 {surveyRows.length === 0 ? (
-                  <p className="rounded-lg border border-violet-200/70 bg-white/80 px-2.5 py-2 text-xs text-zinc-600">
+                  <p className="rounded-lg border border-orange-200/70 bg-white/80 px-2.5 py-2 text-xs text-zinc-600">
                     Noch keine Umfragen erstellt.
                   </p>
                 ) : (
                   surveyRows.map((survey) => (
-                    <div key={survey.id} className="rounded-lg border border-violet-200/70 bg-white/85 px-2.5 py-2">
+                    <div key={survey.id} className="rounded-lg border border-orange-200/70 bg-white/85 px-2.5 py-2">
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-xs font-semibold text-zinc-900">{survey.title}</p>
                         <form action={deleteRewardSurveyAction}>
@@ -375,7 +377,7 @@ export default async function AdvisorRewardsPage({
                             title="Umfrage löschen"
                             className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-rose-300/70 bg-rose-50 text-sm text-rose-700 transition hover:bg-rose-100"
                           >
-                            🗑
+                            ??
                           </button>
                         </form>
                       </div>
@@ -387,8 +389,8 @@ export default async function AdvisorRewardsPage({
                         Optionen: {surveyOptionCountBySurvey.get(survey.id) ?? 0} • Antworten: {surveyResponseCountBySurvey.get(survey.id) ?? 0}
                       </p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
-                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
+                        <details className="rounded-lg border border-orange-200/70 bg-orange-50/70 p-2">
+                          <summary className="cursor-pointer text-[11px] font-semibold text-orange-700 underline decoration-orange-300/70 underline-offset-4">
                             Bearbeiten
                           </summary>
                           <form action={updateRewardSurveyAction} className="mt-2 grid gap-1.5">
@@ -453,14 +455,14 @@ export default async function AdvisorRewardsPage({
                           </form>
                         </details>
 
-                        <details className="rounded-lg border border-violet-200/70 bg-violet-50/70 p-2">
-                          <summary className="cursor-pointer text-[11px] font-semibold text-violet-700 underline decoration-violet-300/70 underline-offset-4">
+                        <details className="rounded-lg border border-orange-200/70 bg-orange-50/70 p-2">
+                          <summary className="cursor-pointer text-[11px] font-semibold text-orange-700 underline decoration-orange-300/70 underline-offset-4">
                             Antworten ansehen
                           </summary>
-                          <div className="mt-2 rounded-lg border border-violet-200/70 bg-white/80 p-2">
+                          <div className="mt-2 rounded-lg border border-orange-200/70 bg-white/80 p-2">
                             {survey.survey_type === "preset" ? (
                               <div className="space-y-1.5">
-                                <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-700">
+                                <p className="text-[11px] font-semibold uppercase tracking-wide text-orange-700">
                                   Abstimmung je Option
                                 </p>
                                 {(surveyOptionsBySurvey.get(survey.id) ?? []).length === 0 ? (
@@ -469,10 +471,10 @@ export default async function AdvisorRewardsPage({
                                   (surveyOptionsBySurvey.get(survey.id) ?? []).map((option) => (
                                     <div
                                       key={option.id}
-                                      className="flex items-center justify-between rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
+                                      className="flex items-center justify-between rounded-md border border-orange-200/60 bg-orange-50/70 px-2 py-1.5"
                                     >
                                       <span className="text-[11px] text-zinc-800">{option.text}</span>
-                                      <span className="rounded bg-violet-100 px-2 py-0.5 text-[11px] font-semibold text-violet-800">
+                                      <span className="rounded bg-orange-100 px-2 py-0.5 text-[11px] font-semibold text-orange-800">
                                         {surveyVoteCountByOptionId.get(option.id) ?? 0}
                                       </span>
                                     </div>
@@ -492,7 +494,7 @@ export default async function AdvisorRewardsPage({
                                   .map((response) => (
                                     <div
                                       key={response.id}
-                                      className="rounded-md border border-violet-200/60 bg-violet-50/70 px-2 py-1.5"
+                                      className="rounded-md border border-orange-200/60 bg-orange-50/70 px-2 py-1.5"
                                     >
                                       <p className="text-[11px] font-semibold text-zinc-900">
                                         {response.referrerName}
@@ -595,7 +597,7 @@ export default async function AdvisorRewardsPage({
 
       <section className={panelClass}>
         <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
             <GiftIcon className="h-4 w-4" />
           </span>
           Neue Prämie anlegen
@@ -632,7 +634,7 @@ export default async function AdvisorRewardsPage({
           <label className="flex flex-col gap-1 text-xs text-zinc-600">
             Bild-URL (optional)
             <input name="image_url" defaultValue={params.f_image_url ?? ""} className={inputClass} />
-            <p className={hintClass}>Wenn gesetzt, wird das Bild in der Prämienübersicht gezeigt.</p>
+            <p className={hintClass}>Wenn gesetzt, wird das Bild in der PrämienÜbersicht gezeigt.</p>
           </label>
           {params.f_image_url ? (
             <div className="lg:col-span-3">
@@ -673,9 +675,9 @@ export default async function AdvisorRewardsPage({
           </div>
           </form>
 
-          <form action={uploadRewardImageAction} className="grid h-fit gap-2 rounded-xl border border-violet-200/70 bg-violet-50/70 p-3">
+          <form action={uploadRewardImageAction} className="grid h-fit gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
             <p className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900">
-              <BookIcon className="h-4 w-4 text-violet-700" />
+              <BookIcon className="h-4 w-4 text-orange-700" />
               Bild-Upload
             </p>
             <label className="flex flex-col gap-1 text-xs text-zinc-600">
@@ -695,7 +697,7 @@ export default async function AdvisorRewardsPage({
               <input type="checkbox" name="image_rights_confirmed" value="1" defaultChecked={params.f_image_rights_confirmed === "1"} className="mt-0.5" />
               <span>Ich bestätige die Nutzungsrechte für dieses Bild.</span>
             </label>
-            <button type="submit" className={primaryButtonClass}>Bild hochladen und URL übernehmen</button>
+            <button type="submit" className={primaryButtonClass}>Bild hochladen und URL Übernehmen</button>
           </form>
         </div>
       </section>
@@ -705,23 +707,23 @@ export default async function AdvisorRewardsPage({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
                   <GiftIcon className="h-4 w-4" />
                 </span>
                 Bestehende Prämien
               </h2>
               <p className="mt-1 text-xs text-zinc-600">
-                Übersicht Ihrer angelegten Belohnungen. Bearbeitung erfolgt über das Stift-Symbol.
+                Übersicht Ihrer angelegten Belohnungen. Bearbeitung erfolgt Über das Stift-Symbol.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full border border-violet-300/55 bg-violet-100/75 px-2.5 py-1 text-xs font-medium text-violet-800">
+              <span className="rounded-full border border-orange-300/55 bg-orange-100/75 px-2.5 py-1 text-xs font-medium text-orange-800">
                 {rewards.length} gesamt
               </span>
               {hasMoreRewards ? (
                 <Link
                   href={showAllRewards ? "/berater/praemien" : "/berater/praemien?show=all"}
-                  className="text-sm text-violet-700 underline decoration-violet-300/60 underline-offset-4 transition-colors hover:text-violet-900"
+                  className="text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-colors hover:text-orange-900"
                 >
                   {showAllRewards ? "Weniger anzeigen" : `Mehr anzeigen (${rewards.length})`}
                 </Link>
@@ -730,25 +732,25 @@ export default async function AdvisorRewardsPage({
           </div>
           <div className="mt-3">
             {rewards.length === 0 ? (
-              <p className="rounded-xl border border-violet-200/70 bg-white/78 px-3 py-3 text-sm text-zinc-600">
+              <p className="rounded-xl border border-orange-200/70 bg-white/78 px-3 py-3 text-sm text-zinc-600">
                 Noch keine Prämien hinterlegt.
               </p>
             ) : (
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {visibleRewards.map((reward) => (
-                  <article key={reward.id} className="rounded-xl border border-violet-200/70 bg-white/78 p-2.5">
+                  <article key={reward.id} className="rounded-xl border border-orange-200/70 bg-white/78 p-2.5">
                   <div className="flex items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5">
                       {reward.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={reward.image_url} alt={reward.title || reward.name || "Prämie"} className="h-12 w-12 rounded-lg object-cover" style={{ objectPosition: `${reward.image_focus_x ?? 50}% ${reward.image_focus_y ?? 50}%` }} />
                       ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-violet-200/70 bg-violet-50 text-[9px] text-zinc-500">Kein Bild</div>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-orange-200/70 bg-orange-50 text-[9px] text-zinc-500">Kein Bild</div>
                       )}
                       <div>
                         <p className="text-[15px] font-medium leading-tight text-zinc-900">{reward.title || reward.name}</p>
                         <div className="mt-1 flex flex-wrap items-center gap-1">
-                          <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-800">
+                          <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-800">
                             {reward.points_cost} Punkte
                           </span>
                           <span className={reward.is_active ? "rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700" : "rounded bg-zinc-200 px-1.5 py-0.5 text-[10px] font-medium text-zinc-700"}>
@@ -756,7 +758,7 @@ export default async function AdvisorRewardsPage({
                           </span>
                         </div>
                         {reward.external_product_url ? (
-                          <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex text-[11px] text-violet-700 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-900">Produktlink öffnen</a>
+                          <a href={reward.external_product_url} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex text-[11px] text-orange-700 underline decoration-orange-300/60 underline-offset-4 hover:text-orange-900">Produktlink Öffnen</a>
                         ) : (
                           <p className="mt-0.5 text-[11px] text-zinc-500">Kein Produktlink hinterlegt</p>
                         )}
@@ -782,18 +784,18 @@ export default async function AdvisorRewardsPage({
 
       <section className={panelClass}>
         <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700"><TrophyIcon className="h-4 w-4" /></span>
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700"><TrophyIcon className="h-4 w-4" /></span>
           Einlösungen
         </h2>
         <p className="mt-1 text-sm text-zinc-600">Hier sehen Sie offene und bearbeitete Einlösungen inklusive Statussteuerung.</p>
-        <div className="mt-4 max-h-[520px] overflow-auto rounded-xl border border-violet-100/80 bg-violet-50/65">
-          <table className="min-w-full text-sm"><thead className="sticky top-0 bg-violet-100/90 text-left text-zinc-600 backdrop-blur"><tr><th className="px-2 py-2">Datum</th><th className="px-2 py-2">Empfehler</th><th className="px-2 py-2">Prämie</th><th className="px-2 py-2">Punkte</th><th className="px-2 py-2">Status</th></tr></thead><tbody className="divide-y divide-violet-100">
+        <div className="mt-4 max-h-[520px] overflow-auto rounded-xl border border-orange-100/80 bg-orange-50/65">
+          <table className="min-w-full text-sm"><thead className="sticky top-0 bg-orange-100/90 text-left text-zinc-600 backdrop-blur"><tr><th className="px-2 py-2">Datum</th><th className="px-2 py-2">Empfehler</th><th className="px-2 py-2">Prämie</th><th className="px-2 py-2">Punkte</th><th className="px-2 py-2">Status</th></tr></thead><tbody className="divide-y divide-orange-100">
               {redemptions.length === 0 ? (<tr><td colSpan={5} className="px-2 py-4 text-zinc-500">Noch keine Einlösungen vorhanden.</td></tr>) : (
                 redemptions.map((row) => {
                   const referrerName = row.referrer ? `${row.referrer.first_name} ${row.referrer.last_name}`.trim() : "-";
                   const rewardName = row.reward?.title || row.reward?.name || "Unbekannte Prämie";
                   return (
-                    <tr key={row.id} className="transition-colors duration-200 hover:bg-violet-100/65">
+                    <tr key={row.id} className="transition-colors duration-200 hover:bg-orange-100/65">
                       <td className="px-2 py-2 text-zinc-700">{new Date(row.created_at).toLocaleString("de-DE")}</td>
                       <td className="px-2 py-2 text-zinc-700">{referrerName}{row.referrer?.email ? <span className="ml-1 text-xs text-zinc-500">({row.referrer.email})</span> : null}</td>
                       <td className="px-2 py-2 text-zinc-700">{rewardName}</td>

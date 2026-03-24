@@ -1,4 +1,4 @@
-import { SparklesIcon } from "@/app/empfehler/dashboard/components/icons";
+﻿import { SparklesIcon } from "@/app/empfehler/dashboard/components/icons";
 
 type DashboardHeroProps = {
   firstName: string;
@@ -7,10 +7,10 @@ type DashboardHeroProps = {
 
 export function DashboardHero({ firstName, advisorName }: DashboardHeroProps) {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-violet-200/65 bg-violet-50/88 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+    <section className="relative overflow-hidden rounded-2xl border border-orange-200/65 bg-orange-50/88 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
       <div className="relative space-y-3">
-        <span className="inline-flex items-center gap-2.5 rounded-full border border-violet-300/45 bg-violet-200/55 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-violet-800">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-300/40 text-violet-800">
+        <span className="inline-flex items-center gap-2.5 rounded-full border border-orange-300/45 bg-orange-200/55 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-800">
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-300/40 text-orange-800">
             <SparklesIcon className="h-3 w-3" />
           </span>
           Willkommen zurück

@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import type { AppRole, AuthResult, CurrentUserResult } from "@/lib/auth/types";
 import { ensureAdvisorOnboardingForUser } from "@/lib/auth/onboarding";
 import { ensureReferrerOnboardingForUser } from "@/lib/auth/referrer";
+import {
+  getAdvisorAccessStateForUser,
+  getAdvisorPostLoginPath,
+} from "@/lib/auth/advisor-access";
 
 function isValidEmail(value: string) {
   return /\S+@\S+\.\S+/.test(value);
@@ -135,7 +139,8 @@ export async function signup(formData: FormData): Promise<AuthResult> {
 
   if (data.session && data.user) {
     await ensureAdvisorOnboardingForUser(supabase, data.user, inviteCode);
-    redirect("/berater/dashboard");
+    const access = await getAdvisorAccessStateForUser(supabase, data.user.id);
+    redirect(getAdvisorPostLoginPath(access.canAccessApp));
   }
 
   return {
@@ -176,9 +181,11 @@ export async function login(formData: FormData): Promise<AuthResult> {
     }
 
     await ensureAdvisorOnboardingForUser(supabase, user);
+    const access = await getAdvisorAccessStateForUser(supabase, user.id);
+    redirect(getAdvisorPostLoginPath(access.canAccessApp));
   }
 
-  redirect("/berater/dashboard");
+  redirect("/berater/login");
 }
 
 export async function logout() {

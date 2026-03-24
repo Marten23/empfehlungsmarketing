@@ -26,10 +26,10 @@ type LevelTheme = {
 const levelThemes: Record<ReferrerLevel["key"], LevelTheme> = {
   none: {
     surface: "bg-white/84",
-    ring: "border-violet-200/55",
-    iconWrap: "border-violet-300/45 bg-violet-100/80",
-    iconColor: "text-violet-700",
-    label: "text-violet-700",
+    ring: "border-orange-200/55",
+    iconWrap: "border-orange-300/45 bg-orange-100/80",
+    iconColor: "text-orange-700",
+    label: "text-orange-700",
     title: "text-zinc-900",
     text: "text-zinc-700",
     subtext: "text-zinc-500",

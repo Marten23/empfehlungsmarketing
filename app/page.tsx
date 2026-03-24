@@ -2,6 +2,12 @@
 import Image from "next/image";
 import { getCurrentUser } from "@/lib/auth/auth";
 import {
+  resolveMonthlyFeeCents,
+  resolveSetupFeeCents,
+  resolveTierByPosition,
+  type PricingTier,
+} from "@/lib/billing/domain";
+import {
   BookIcon,
   GiftIcon,
   TargetIcon,
@@ -9,6 +15,8 @@ import {
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
 import { LandingProblemsSection } from "@/app/components/landing-problems-section";
+import { getQualifyingLiveAdvisorCount } from "@/lib/queries/billing";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const benefits = [
   {
@@ -48,9 +56,90 @@ const steps = [
   },
 ];
 
+const landingPricingPhases = [
+  {
+    key: "founder",
+    title: "Startphase / Early Bird",
+    text: "Frühe Berater profitieren vom vergünstigten Einstieg und bringen Praxis-Feedback direkt in die Weiterentwicklung ein.",
+  },
+  {
+    key: "early",
+    title: "Wachstumsphase",
+    text: "Mit wachsender Nutzung und weiterer Etablierung entwickelt sich auch die Preisstufe in die nächste Phase.",
+  },
+  {
+    key: "standard",
+    title: "Standardphase",
+    text: "Nach der Aufbauphase gilt der reguläre Einstiegspreis für neue Berater.",
+  },
+ ] as const satisfies ReadonlyArray<{ key: PricingTier; title: string; text: string }>;
+
+function formatEuro(cents: number) {
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+function getPhaseMetaFromCount(qualifiedLiveCount: number) {
+  const nextPosition = qualifiedLiveCount + 1;
+  const tier = resolveTierByPosition(nextPosition);
+
+  if (tier === "founder") {
+    const phaseLimit = 10;
+    const currentCountInPhase = Math.min(Math.max(qualifiedLiveCount, 0), phaseLimit);
+    return {
+      tier,
+      phaseLabel: "Startphase / Early Bird",
+      phaseLimit,
+      currentCountInPhase,
+      remainingUntilNext: Math.max(phaseLimit - currentCountInPhase, 0),
+    };
+  }
+
+  if (tier === "early") {
+    const phaseLimit = 40;
+    const currentCountInPhase = Math.min(Math.max(qualifiedLiveCount - 10, 0), phaseLimit);
+    return {
+      tier,
+      phaseLabel: "Wachstumsphase",
+      phaseLimit,
+      currentCountInPhase,
+      remainingUntilNext: Math.max(phaseLimit - currentCountInPhase, 0),
+    };
+  }
+
+  return {
+    tier,
+    phaseLabel: "Standardphase",
+    phaseLimit: null as number | null,
+    currentCountInPhase: Math.max(qualifiedLiveCount - 50, 0),
+    remainingUntilNext: 0,
+  };
+}
+
 export default async function HomePage() {
   const { user, role } = await getCurrentUser();
   const dashboardHref = role === "referrer" ? "/empfehler/dashboard" : "/berater/dashboard";
+  let qualifiedLiveAdvisorCount = 0;
+
+  try {
+    const admin = createAdminClient();
+    qualifiedLiveAdvisorCount = await getQualifyingLiveAdvisorCount(admin);
+  } catch {
+    qualifiedLiveAdvisorCount = 0;
+  }
+
+  const phaseMeta = getPhaseMetaFromCount(qualifiedLiveAdvisorCount);
+  const currentSetupCents = resolveSetupFeeCents(phaseMeta.tier);
+  const currentMonthlyCents = resolveMonthlyFeeCents(phaseMeta.tier);
+  const currentAnnualCents = currentMonthlyCents * 12;
+  const phaseProgressPercent =
+    phaseMeta.phaseLimit && phaseMeta.phaseLimit > 0
+      ? Math.min(Math.max((phaseMeta.currentCountInPhase / phaseMeta.phaseLimit) * 100, 0), 100)
+      : 100;
 
   return (
     <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-10 px-6 pb-10 pt-6 md:gap-12 md:px-8 md:pb-14">
@@ -78,6 +167,7 @@ export default async function HomePage() {
           </p>
 
           <nav className="hidden items-center justify-center gap-2 xl:flex">
+            <a href="#preise" className="rounded-lg px-3 py-1.5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-orange-100/75 hover:text-orange-700">Preise</a>
             <a href="#alltag" className="rounded-lg px-3 py-1.5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-orange-100/75 hover:text-orange-700">Anwendung</a>
             <a href="#probleme" className="rounded-lg px-3 py-1.5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-orange-100/75 hover:text-orange-700">Probleme</a>
             <a href="#nutzen" className="rounded-lg px-3 py-1.5 text-sm font-semibold text-zinc-700 transition-colors hover:bg-orange-100/75 hover:text-orange-700">Nutzen</a>
@@ -197,6 +287,123 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="preise" className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] scroll-mt-28">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold text-zinc-900 md:text-3xl">
+              Aktuelle Startphase und Vorteile
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm text-zinc-700 md:text-base">
+              Der Einstiegspreis folgt einem transparenten Phasenmodell. Im Fokus steht die aktuelle Phase,
+              ergänzt um eine klare Orientierung zur nächsten Preisstufe.
+            </p>
+          </div>
+          <span className="rounded-full border border-orange-200/80 bg-orange-100/75 px-3 py-1 text-xs font-semibold text-orange-700">
+            Für Berater
+          </span>
+        </div>
+
+        <article className="mt-5 overflow-hidden rounded-2xl border border-orange-200/75 bg-gradient-to-br from-orange-50/90 via-white to-zinc-50 p-5 shadow-[0_18px_34px_rgba(249,115,22,0.12)] md:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center rounded-full border border-orange-300/70 bg-orange-100/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-orange-700">
+                Aktuelle Phase
+              </span>
+              <h3 className="mt-3 text-2xl font-semibold text-zinc-900 md:text-[2rem]">
+                Früh einsteigen und Rewaro mitgestalten
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-700 md:text-base">
+                In der Startphase profitieren frühe Berater vom vergünstigten Einstieg und helfen mit
+                ihrem Feedback dabei, Rewaro weiter auf den realen Beratungsalltag auszurichten.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-200/80 bg-white/95 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">{phaseMeta.phaseLabel}</p>
+              <p className="mt-1 text-3xl font-semibold leading-none text-zinc-900">{formatEuro(currentSetupCents)}</p>
+              <p className="mt-1 text-sm font-medium text-zinc-700">Einrichtungsgebühr</p>
+              <p className="mt-2 text-sm text-zinc-700">{formatEuro(currentMonthlyCents)} pro Monat</p>
+              <p className="text-sm text-zinc-700">{formatEuro(currentAnnualCents)} pro Jahr</p>
+            </div>
+          </div>
+        </article>
+
+        <div className="mt-4 rounded-2xl border border-zinc-200/85 bg-zinc-50/85 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium text-zinc-700">
+              {phaseMeta.phaseLimit ? (
+                <>
+                  Aktuell {phaseMeta.phaseLabel}: noch{" "}
+                  <span className="font-semibold text-zinc-900">{phaseMeta.remainingUntilNext} Plätze</span>{" "}
+                  bis zur nächsten Preisstufe.
+                </>
+              ) : (
+                <>Aktuell {phaseMeta.phaseLabel}: regulärer Einstiegspreis aktiv.</>
+              )}
+            </p>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              {phaseMeta.phaseLimit
+                ? `${phaseMeta.currentCountInPhase} / ${phaseMeta.phaseLimit} Plätze belegt`
+                : `${qualifiedLiveAdvisorCount} qualifizierte Live-Berater`}
+            </p>
+          </div>
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-200/90">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-500"
+              style={{
+                width: `${phaseProgressPercent}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {landingPricingPhases.map((phase) => {
+            const isCurrent = phase.key === phaseMeta.tier;
+            const setupCents = resolveSetupFeeCents(phase.key);
+            const monthlyCents = resolveMonthlyFeeCents(phase.key);
+            const annualCents = monthlyCents * 12;
+            return (
+              <article
+                key={phase.key}
+                className={`rounded-2xl border p-4 transition-colors ${
+                  isCurrent ? "border-orange-200/80 bg-orange-50/70" : "border-zinc-200/85 bg-white/90"
+                }`}
+              >
+                <p className={`text-xs font-semibold uppercase tracking-[0.12em] ${isCurrent ? "text-orange-700" : "text-zinc-500"}`}>
+                  {phase.title}
+                </p>
+                <p className="mt-2 text-base font-semibold text-zinc-900">{formatEuro(setupCents)} Einrichtung</p>
+                <p className="text-sm text-zinc-700">{formatEuro(monthlyCents)} monatlich oder {formatEuro(annualCents)} jährlich</p>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{phase.text}</p>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="rounded-2xl border border-orange-200/85 bg-gradient-to-br from-orange-50/95 to-white p-4 shadow-[0_12px_26px_rgba(249,115,22,0.1)]">
+            <p className="text-sm font-semibold text-zinc-900">Startvorteile beim Einstieg</p>
+            <ul className="mt-2 space-y-2 text-sm text-zinc-700">
+              <li>• 100 € Startvorteil über Berater-Einladung</li>
+              <li>• 200 € Einrichtungsvorteil bei direkter Jahreszahlung</li>
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-orange-200/80 bg-gradient-to-br from-orange-50/90 to-white p-4 shadow-[0_12px_26px_rgba(249,115,22,0.08)]">
+            <p className="text-sm font-semibold text-zinc-900">Langfristiges Sparpotenzial</p>
+            <div className="mt-2 rounded-xl border border-orange-200/80 bg-white/85 p-3">
+              <p className="text-lg font-semibold leading-tight text-zinc-900">Bis zu 50 % dauerhaft auf laufende Kosten möglich</p>
+              <p className="mt-1.5 text-sm text-zinc-700">
+                Mit einem starken Empfehlungsnetzwerk können Sie Ihre laufenden Rewaro-Kosten dauerhaft halbieren.
+              </p>
+            </div>
+            <p className="mt-3 text-sm font-medium text-zinc-800">Zusätzlich sind bis zu 11 Monate kostenlos möglich.</p>
+            <p className="mt-1 text-sm text-zinc-700">
+              Durch Empfehlungen und Optionen beim Start können Sie sich bis zu 11 Monate Rewaro komplett kostenlos sichern.
+            </p>
           </div>
         </div>
       </section>

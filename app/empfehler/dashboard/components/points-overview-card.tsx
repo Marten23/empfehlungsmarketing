@@ -18,11 +18,11 @@ export function PointsOverviewCard({
   nextReward,
 }: PointsOverviewCardProps) {
   return (
-    <section className="h-full rounded-2xl border border-violet-200/55 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-violet-300/45 bg-violet-100/80 text-violet-700">
+    <section className="h-full rounded-2xl border border-orange-200/55 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
         <BoltIcon className="h-5 w-5" />
       </span>
-      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-violet-700">
+      <p className="mt-2 text-xs font-medium uppercase tracking-wide text-orange-700">
         Verfügbare Punkte
       </p>
       <p className="mt-2 text-5xl font-semibold tracking-tight text-zinc-900">

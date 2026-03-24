@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { AdvisorBusinessImage } from "@/app/components/advisor-business-image";
@@ -40,7 +40,7 @@ export function PreviewDialogTrigger({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center rounded-xl border border-violet-300/50 bg-violet-600 px-3.5 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-violet-500"
+        className="inline-flex items-center rounded-xl border border-orange-300/50 bg-orange-600 px-3.5 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500"
       >
         Vorschau öffnen
       </button>
@@ -51,11 +51,11 @@ export function PreviewDialogTrigger({
           onClick={() => setOpen(false)}
         >
           <div
-            className="relative w-[min(96vw,1500px)] overflow-hidden rounded-[26px] border border-violet-200/70 bg-[linear-gradient(165deg,rgba(250,247,255,0.98),rgba(240,235,252,0.95))] shadow-[0_28px_64px_rgba(16,8,34,0.45)]"
+            className="relative w-[min(96vw,1500px)] overflow-hidden rounded-[26px] border border-orange-200/70 bg-[linear-gradient(165deg,rgba(250,247,255,0.98),rgba(240,235,252,0.95))] shadow-[0_28px_64px_rgba(16,8,34,0.45)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-violet-200/75 bg-white/70 px-5 py-3">
-              <p className="text-sm font-semibold uppercase tracking-wide text-violet-700">
+            <div className="flex items-center justify-between border-b border-orange-200/75 bg-white/70 px-5 py-3">
+              <p className="text-sm font-semibold uppercase tracking-wide text-orange-700">
                 Vorschau Neukontakt-Linkseite
               </p>
               <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export function PreviewDialogTrigger({
                     href={previewPath}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-lg border border-violet-300/55 bg-white px-2.5 py-1 text-xs font-semibold text-violet-800 transition hover:bg-violet-50"
+                    className="rounded-lg border border-orange-300/55 bg-white px-2.5 py-1 text-xs font-semibold text-orange-800 transition hover:bg-orange-50"
                   >
                     Neuer Tab
                   </a>
@@ -72,7 +72,7 @@ export function PreviewDialogTrigger({
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-lg border border-violet-300/55 bg-white px-2.5 py-1 text-xs font-semibold text-violet-800 transition hover:bg-violet-50"
+                  className="rounded-lg border border-orange-300/55 bg-white px-2.5 py-1 text-xs font-semibold text-orange-800 transition hover:bg-orange-50"
                 >
                   Schließen
                 </button>
@@ -93,7 +93,7 @@ export function PreviewDialogTrigger({
                   Kein gültiger Empfehler-Link vorhanden. Es wird eine direkte Vorschau mit Ihren aktuellen Einstellungen angezeigt.
                 </p>
                 <div className="overflow-x-auto">
-                  <div className="min-w-[980px] overflow-hidden rounded-[22px] border border-violet-200/70 bg-[linear-gradient(165deg,rgba(250,247,255,0.96),rgba(240,235,252,0.92))]">
+                  <div className="min-w-[980px] overflow-hidden rounded-[22px] border border-orange-200/70 bg-[linear-gradient(165deg,rgba(250,247,255,0.96),rgba(240,235,252,0.92))]">
                     <div className="grid gap-4 p-5 md:grid-cols-[240px_minmax(0,1fr)]">
                       <div className="space-y-3">
                         <AdvisorBusinessImage
@@ -110,13 +110,13 @@ export function PreviewDialogTrigger({
                       </div>
 
                       <div className="space-y-3">
-                        <p className="text-sm font-semibold uppercase tracking-wide text-violet-700">Begrüßung</p>
+                        <p className="text-sm font-semibold uppercase tracking-wide text-orange-700">Begrüßung</p>
                         {welcomeText ? (
                           <p className="rounded-xl bg-white/82 px-3 py-2.5 text-sm text-zinc-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                             {welcomeText}
                           </p>
                         ) : (
-                          <p className="rounded-xl border border-dashed border-violet-200/80 bg-white/74 px-3 py-2.5 text-sm text-zinc-500">
+                          <p className="rounded-xl border border-dashed border-orange-200/80 bg-white/74 px-3 py-2.5 text-sm text-zinc-500">
                             Kein Begrüßungstext hinterlegt.
                           </p>
                         )}
@@ -125,16 +125,16 @@ export function PreviewDialogTrigger({
                           <video
                             controls
                             preload="metadata"
-                            className="w-full overflow-hidden rounded-xl border border-violet-200/70 bg-black"
+                            className="w-full overflow-hidden rounded-xl border border-orange-200/70 bg-black"
                             src={welcomeVideoUrl}
                           />
                         ) : (
-                          <p className="rounded-xl border border-dashed border-violet-200/80 bg-white/74 px-3 py-2.5 text-xs text-zinc-600">
+                          <p className="rounded-xl border border-dashed border-orange-200/80 bg-white/74 px-3 py-2.5 text-xs text-zinc-600">
                             Kein aktives Begrüßungsvideo eingebunden.
                           </p>
                         )}
 
-                        <div className="rounded-xl border border-violet-200/75 bg-violet-50/75 px-3 py-2 text-xs text-zinc-700">
+                        <div className="rounded-xl border border-orange-200/75 bg-orange-50/75 px-3 py-2 text-xs text-zinc-700">
                           Formularbereich (Vorschau): Name, Kontakt und Anfrage erscheinen unterhalb dieses Blocks.
                         </div>
                       </div>
