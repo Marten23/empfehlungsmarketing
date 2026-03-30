@@ -12,9 +12,13 @@ const TEST_ENV = {
   STRIPE_PRICE_MONTHLY_TIER_1: "price_monthly_1",
   STRIPE_PRICE_MONTHLY_TIER_2: "price_monthly_2",
   STRIPE_PRICE_MONTHLY_TIER_3: "price_monthly_3",
+  STRIPE_PRICE_MONTHLY_TIER_4: "price_monthly_4",
+  STRIPE_PRICE_MONTHLY_TIER_5: "price_monthly_5",
   STRIPE_PRICE_ANNUAL_TIER_1: "price_annual_1",
   STRIPE_PRICE_ANNUAL_TIER_2: "price_annual_2",
   STRIPE_PRICE_ANNUAL_TIER_3: "price_annual_3",
+  STRIPE_PRICE_ANNUAL_TIER_4: "price_annual_4",
+  STRIPE_PRICE_ANNUAL_TIER_5: "price_annual_5",
   STRIPE_LIFETIME_COUPON_ID: "coupon_lifetime",
   APP_URL: "http://localhost:3000",
   STRIPE_CHECKOUT_SUCCESS_URL: "http://localhost:3000/success",
@@ -37,6 +41,22 @@ describe("stripe recurring price mapping", () => {
     );
     assert.equal(price, "price_annual_3");
   });
+
+  it("maps monthly scale to tier 4 env price", () => {
+    const price = resolveRecurringStripePriceId(
+      { tierSnapshot: "scale", billingInterval: "monthly" },
+      TEST_ENV,
+    );
+    assert.equal(price, "price_monthly_4");
+  });
+
+  it("maps annual market to tier 5 env price", () => {
+    const price = resolveRecurringStripePriceId(
+      { tierSnapshot: "market", billingInterval: "annual" },
+      TEST_ENV,
+    );
+    assert.equal(price, "price_annual_5");
+  });
 });
 
 describe("lifetime coupon usage", () => {
@@ -49,4 +69,3 @@ describe("lifetime coupon usage", () => {
     assert.equal(shouldApplyLifetimeCoupon("inactive", "coupon_lifetime"), false);
   });
 });
-

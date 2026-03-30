@@ -1,8 +1,12 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAdvisorContext } from "@/lib/auth/advisor";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
 import { getAdvisorActivationState } from "@/lib/queries/advisors";
+import {
+  getAdvisorFreeMonthsState,
+  grantOrdelyPromoMonthsIfEligible,
+} from "@/lib/queries/billing";
 import { LinkToolCard } from "@/app/components/link-tool-card";
 import {
   ArrowUpRightIcon,
@@ -12,11 +16,9 @@ import {
   TrophyIcon,
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
-import {
-  markOwnContractActivatedAction,
-  setReferrerActivationModeAction,
-} from "@/app/dashboard/advisors/actions";
 import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
+import { buildWhatsAppShareUrlForFlow } from "@/lib/whatsapp/share";
+import { InstagramInviteButton } from "@/app/components/instagram-invite-button";
 
 type AdvisorGrowthRow = {
   id: string;
@@ -25,18 +27,7 @@ type AdvisorGrowthRow = {
   is_active: boolean;
 };
 
-type DashboardAdvisorsPageProps = {
-  searchParams: Promise<{
-    activated?: string;
-    settings?: string;
-    reason?: string;
-  }>;
-};
-
-export default async function DashboardAdvisorsPage({
-  searchParams,
-}: DashboardAdvisorsPageProps) {
-  const params = await searchParams;
+export default async function DashboardAdvisorsPage() {
   const advisorContext = await getCurrentAdvisorContext();
 
   if (!advisorContext) {
@@ -55,15 +46,26 @@ export default async function DashboardAdvisorsPage({
   let loadError: string | null = null;
   let advisorInviteCode: string | null = null;
   let advisorReferralSlug: string | null = null;
+  let advisorPromoCode: string | null = null;
   let referrerInviteCode: string | null = null;
   let accountActivatedAt: string | null = null;
   let isActive = false;
-  let autoActivateReferrers = false;
+  let ordelyCooperationEnabled = false;
+  let ordelyCooperationLockUntil: string | null = null;
+  let qualifiedReferralCount = 0;
+  let rewardedReferralCount = 0;
+  let freeMonthsAvailable = 0;
+  let freeMonthsEarnedTotal = 0;
+  let freeMonthsReservedNextCycle = 0;
+  let freeMonthsConsumedTotal = 0;
+  let lifetimeDiscountState: "inactive" | "pending_next_cycle" | "active" = "inactive";
+  let lifetimeDiscountPercent = 0;
+  let lifetimeDiscountEffectiveFrom: string | null = null;
 
   try {
     const { data: advisorCodesRow, error: advisorCodesError } = await supabase
       .from("advisors")
-      .select("invite_code, advisor_referral_slug, referrer_invite_code")
+      .select("invite_code, advisor_referral_slug, referrer_invite_code, advisor_promo_code, lifetime_discount_state, lifetime_discount_percent, lifetime_discount_effective_from")
       .eq("id", advisorContext.advisorId)
       .maybeSingle();
 
@@ -75,10 +77,18 @@ export default async function DashboardAdvisorsPage({
         invite_code?: string | null;
         advisor_referral_slug?: string | null;
         referrer_invite_code?: string | null;
+        advisor_promo_code?: string | null;
+        lifetime_discount_state?: "inactive" | "pending_next_cycle" | "active" | null;
+        lifetime_discount_percent?: number | null;
+        lifetime_discount_effective_from?: string | null;
       } | null;
       advisorInviteCode = row?.invite_code ?? null;
       advisorReferralSlug = row?.advisor_referral_slug ?? null;
       referrerInviteCode = row?.referrer_invite_code ?? null;
+      advisorPromoCode = row?.advisor_promo_code ?? null;
+      lifetimeDiscountState = row?.lifetime_discount_state ?? "inactive";
+      lifetimeDiscountPercent = Number(row?.lifetime_discount_percent ?? 0);
+      lifetimeDiscountEffectiveFrom = row?.lifetime_discount_effective_from ?? null;
     }
 
     const activationState = await getAdvisorActivationState(
@@ -90,7 +100,7 @@ export default async function DashboardAdvisorsPage({
 
     const { data: settingsRow, error: settingsError } = await supabase
       .from("advisor_settings")
-      .select("auto_activate_referrers")
+      .select("ordely_cooperation_enabled, ordely_cooperation_lock_until")
       .eq("advisor_id", advisorContext.advisorId)
       .maybeSingle();
 
@@ -98,9 +108,16 @@ export default async function DashboardAdvisorsPage({
       const code = (settingsError as { code?: string }).code;
       if (code !== "PGRST204") throw settingsError;
     } else {
-      autoActivateReferrers =
-        (settingsRow as { auto_activate_referrers?: boolean } | null)
-          ?.auto_activate_referrers ?? false;
+      ordelyCooperationEnabled =
+        (settingsRow as { ordely_cooperation_enabled?: boolean } | null)
+          ?.ordely_cooperation_enabled ?? false;
+      ordelyCooperationLockUntil =
+        (settingsRow as { ordely_cooperation_lock_until?: string | null } | null)
+          ?.ordely_cooperation_lock_until ?? null;
+    }
+
+    if (ordelyCooperationEnabled) {
+      await grantOrdelyPromoMonthsIfEligible(supabase, advisorContext.advisorId);
     }
 
     const { data: rows, error } = await supabase
@@ -111,6 +128,32 @@ export default async function DashboardAdvisorsPage({
 
     if (error) throw error;
     successfulInvites = (rows ?? []) as AdvisorGrowthRow[];
+
+    const [{ data: qualificationRows, error: qualificationError }, freeMonthsState] =
+      await Promise.all([
+        supabase
+          .from("advisor_referral_qualifications")
+          .select("status, mode")
+          .eq("inviter_advisor_id", advisorContext.advisorId),
+        getAdvisorFreeMonthsState(supabase, advisorContext.advisorId),
+      ]);
+
+    if (qualificationError) throw qualificationError;
+
+    const liveQualifications = (qualificationRows ?? []).filter(
+      (row) => row.mode === "live",
+    ) as Array<{ status: string; mode: string }>;
+    qualifiedReferralCount = liveQualifications.filter((row) =>
+      row.status === "qualified" || row.status === "rewarded",
+    ).length;
+    rewardedReferralCount = liveQualifications.filter(
+      (row) => row.status === "rewarded",
+    ).length;
+
+    freeMonthsEarnedTotal = freeMonthsState.total_credited;
+    freeMonthsConsumedTotal = freeMonthsState.consumed;
+    freeMonthsReservedNextCycle = freeMonthsState.reserved_next_cycle;
+    freeMonthsAvailable = freeMonthsState.available_now;
   } catch (error) {
     loadError = normalizeSupabaseError(error).message;
   }
@@ -120,25 +163,30 @@ export default async function DashboardAdvisorsPage({
     advisorReferralSlug ?? advisorInviteCode ?? advisorContext.advisorSlug;
   const advisorInviteLink = `${appBase}/partner/${advisorShareCode}`;
   const referrerInviteLink = `${appBase}/empfehler/${referrerInviteCode ?? advisorContext.advisorSlug}`;
+  const advisorToAdvisorWhatsAppUrl = buildWhatsAppShareUrlForFlow(
+    "advisor_to_advisor",
+    advisorInviteLink,
+  );
+  const advisorToReferrerWhatsAppUrl = buildWhatsAppShareUrlForFlow(
+    "advisor_to_referrer",
+    referrerInviteLink,
+  );
 
   const successfulCount = successfulInvites.length;
-  const nextGoal = successfulCount < 10 ? 10 - successfulCount : 0;
+  const nextGoal = qualifiedReferralCount < 10 ? 10 - qualifiedReferralCount : 0;
   const progressPercent = Math.min(
     100,
     Math.round((Math.min(successfulCount, 10) / 10) * 100),
   );
   const currentBenefit =
-    successfulCount >= 10
+    qualifiedReferralCount >= 10
       ? "50 % Lifetime Rabatt auf Ihr Monatsabo"
-      : successfulCount >= 1
-        ? `${successfulCount} Gratismonat${successfulCount === 1 ? "" : "e"}`
+      : freeMonthsAvailable >= 1
+        ? `${freeMonthsAvailable} verfügbarer Gratismonat${freeMonthsAvailable === 1 ? "" : "e"}`
         : "Noch kein Vorteil erreicht";
 
   const panelClass =
     "relative z-10 rounded-2xl border border-orange-200/55 bg-white/82 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]";
-  const buttonClass =
-    "rounded-lg border border-orange-300/50 bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-500 hover:shadow-[0_12px_20px_rgba(249,115,22,0.2)]";
-
   return (
     <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_8%_4%,rgba(255,157,66,0.2),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(96,165,250,0.18),transparent_38%),radial-gradient(circle_at_50%_120%,rgba(139,92,246,0.09),transparent_48%),linear-gradient(180deg,#fcfcff_0%,#f6f8ff_45%,#edf2ff_100%)]" />
@@ -179,14 +227,30 @@ export default async function DashboardAdvisorsPage({
           <div className="rounded-2xl border border-orange-200/65 bg-orange-50/92 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
             <p className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-orange-700">
               <SparklesIcon className="h-4 w-4" />
-              Aktueller Vorteil aus Berater-Empfehlungen
+              Aktuelle Vorteile
             </p>
-            <p className="mt-1 max-w-xs text-sm font-medium text-zinc-800">
-              {currentBenefit}
-            </p>
-            <p className="mt-1 text-xs text-zinc-600">
-              Erfolgreich geworbene Berater: {successfulCount}
-            </p>
+            <div className="mt-2 space-y-1.5 text-sm">
+              <p className="text-zinc-800">
+                Erhaltene Gratismonate offen:{" "}
+                <span className="font-semibold text-zinc-900">{freeMonthsAvailable}</span>
+              </p>
+              {freeMonthsReservedNextCycle > 0 ? (
+                <p className="text-zinc-700">
+                  Vorgemerkt nächster Zeitraum:{" "}
+                  <span className="font-semibold text-zinc-900">{freeMonthsReservedNextCycle}</span>
+                </p>
+              ) : null}
+              <p className="text-zinc-700">
+                Eingelöste Gratismonate:{" "}
+                <span className="font-semibold text-zinc-900">{freeMonthsConsumedTotal}</span>
+              </p>
+              <p className="text-zinc-800">
+                Lifetime-Rabatt:{" "}
+                <span className="font-semibold text-zinc-900">
+                  {lifetimeDiscountState === "active" ? "Aktiv" : "Inaktiv"}
+                </span>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -244,16 +308,27 @@ export default async function DashboardAdvisorsPage({
         </article>
         <article className={panelClass}>
           <p className="text-xs font-medium uppercase tracking-wide text-orange-700">
-            Empfehler-Freigabe
+            Ordely-Kooperation
           </p>
-          <p className="mt-2 text-sm font-semibold text-zinc-900">
-            {autoActivateReferrers ? "Automatisch" : "Manuell"}
+          <p className="mt-2 text-lg font-semibold text-zinc-900">
+            {ordelyCooperationEnabled ? "Aktiv" : "Inaktiv"}
           </p>
           <p className="mt-1 text-xs text-zinc-600">
-            {autoActivateReferrers
-              ? "Neue Empfehler werden direkt aktiviert."
-              : "Neue Empfehler warten auf Ihre Freigabe."}
+            {ordelyCooperationEnabled
+              ? "2 Gratismonate aktiv. Hinweis wird im Empfehler-Dashboard angezeigt."
+              : "Aktivieren Sie die Kooperation in Einstellungen für 2 Gratismonate."}
           </p>
+          <p className="mt-1 text-xs text-zinc-600">
+            {ordelyCooperationEnabled && ordelyCooperationLockUntil
+              ? `Bindend bis ${new Date(ordelyCooperationLockUntil).toLocaleDateString("de-DE")}`
+              : "Status noch nicht aktiviert"}
+          </p>
+          {ordelyCooperationEnabled ? (
+            <p className="mt-1 text-xs text-zinc-600">
+              Ordely Code:{" "}
+              <span className="font-semibold text-zinc-900">{advisorPromoCode || "REWARO50"}</span>
+            </p>
+          ) : null}
         </article>
       </section>
 
@@ -271,20 +346,36 @@ export default async function DashboardAdvisorsPage({
         </ul>
       </section>
 
-      <section className={panelClass}>
+      <section className="relative overflow-hidden rounded-2xl border border-orange-300/65 bg-gradient-to-b from-orange-50/88 via-white to-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_14px_30px_rgba(249,115,22,0.09)]">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-400/0 via-orange-400/70 to-orange-400/0" />
         <h2 className="inline-flex items-center gap-2.5 text-lg font-semibold text-zinc-900">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-orange-300/45 bg-orange-100/80 text-orange-700">
             <BookIcon className="h-4 w-4" />
           </span>
-          Link- und Code-Werkzeuge
+          Recruiting-Links für Ihr Empfehlungsprogramm
         </h2>
+        <p className="mt-2 rounded-xl border border-orange-200/75 bg-white/90 px-3 py-2 text-sm text-zinc-700">
+          Diese beiden Links sind Ihr zentraler Hebel für Wachstum:
+          neue Berater und neue Empfehler direkt Ihrem Programm zuordnen.
+        </p>
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
           <LinkToolCard
             title="Berater-Einladungslink"
             audienceLabel="Für neue Berater"
             helperText="Über diesen Link können sich neue Berater Ihrem Empfehlungsprogramm zuordnen."
             link={advisorInviteLink}
-            code={advisorShareCode}
+            showCode={false}
+            whatsappShareUrl={advisorToAdvisorWhatsAppUrl}
+            instagramAction={
+              <InstagramInviteButton
+                flow="advisor_to_advisor"
+                inviteLink={advisorInviteLink}
+                advisorName={advisorContext.advisorName}
+                mode="advisor_story_and_dm"
+                label="Über Instagram einladen"
+                className="rounded border border-orange-300/55 bg-white px-3 py-1 text-xs font-medium text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100 hover:text-orange-900 hover:ring-1 hover:ring-orange-400/70"
+              />
+            }
             icon={UsersIcon}
           />
           <LinkToolCard
@@ -292,8 +383,9 @@ export default async function DashboardAdvisorsPage({
             audienceLabel="Für neue Empfehler"
             helperText="Über diesen Link registrieren sich neue Empfehler direkt Ihrem Konto zugeordnet."
             link={referrerInviteLink}
-            code={referrerInviteCode ?? advisorContext.advisorSlug}
-            icon={SparklesIcon}
+            showCode={false}
+	            whatsappShareUrl={advisorToReferrerWhatsAppUrl}
+	            icon={SparklesIcon}
           />
         </div>
       </section>
@@ -318,79 +410,6 @@ export default async function DashboardAdvisorsPage({
         <p className="mt-1 text-xs text-zinc-600">
           {Math.min(successfulCount, 10)} / 10 erfolgreiche Berater-Empfehlungen
         </p>
-      </section>
-
-      <section className="grid gap-4">
-        <article className={panelClass}>
-          <h3 className="text-sm font-semibold text-zinc-900">Empfehler-Freigabe</h3>
-          <p className="mt-1 text-xs text-zinc-600">
-            Empfehlung für Produktion: Manuelle Freigabe reduziert Spam und Missbrauch.
-          </p>
-
-          {params.settings === "1" ? (
-            <p className="mt-3 rounded bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-              Einstellung gespeichert.
-            </p>
-          ) : null}
-          {params.settings === "0" ? (
-            <p className="mt-3 rounded bg-red-50 px-3 py-2 text-xs text-red-700">
-              Einstellung konnte nicht gespeichert werden.
-              {params.reason ? ` Grund: ${params.reason}` : ""}
-            </p>
-          ) : null}
-
-          <form action={setReferrerActivationModeAction} className="mt-3 space-y-2">
-            <input
-              type="hidden"
-              name="auto_activate_referrers"
-              value={autoActivateReferrers ? "0" : "1"}
-            />
-            <button type="submit" className={buttonClass}>
-              {autoActivateReferrers
-                ? "Auf manuelle Freigabe umstellen"
-                : "Auf automatische Aktivierung umstellen"}
-            </button>
-          </form>
-        </article>
-      </section>
-
-      <section className="grid gap-4">
-        <article className={panelClass}>
-          <h3 className="text-sm font-semibold text-zinc-900">Vertragsstatus (eigener Berater)</h3>
-          <p className="mt-1 text-xs text-zinc-600">
-            Aktiv: <span className="font-semibold text-zinc-900">{isActive ? "Ja" : "Nein"}</span>
-          </p>
-          <p className="mt-1 text-xs text-zinc-600">
-            Aktiv seit:{" "}
-            <span className="font-semibold text-zinc-900">
-              {accountActivatedAt
-                ? new Date(accountActivatedAt).toLocaleString("de-DE")
-                : "-"}
-            </span>
-          </p>
-
-          {params.activated === "1" ? (
-            <p className="mt-3 rounded bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-              Vertragsabschluss wurde gesetzt.
-            </p>
-          ) : null}
-          {params.activated === "0" ? (
-            <p className="mt-3 rounded bg-red-50 px-3 py-2 text-xs text-red-700">
-              Vertragsabschluss konnte nicht gesetzt werden.
-            </p>
-          ) : null}
-          {params.reason && params.activated === "0" ? (
-            <p className="mt-3 rounded bg-red-50 px-3 py-2 text-xs text-red-700">
-              Grund: {params.reason}
-            </p>
-          ) : null}
-
-          <form action={markOwnContractActivatedAction} className="mt-3">
-            <button type="submit" className={buttonClass}>
-              Vertrag als abgeschlossen markieren (Test)
-            </button>
-          </form>
-        </article>
       </section>
 
       <section className={panelClass}>
@@ -428,4 +447,5 @@ export default async function DashboardAdvisorsPage({
     </main>
   );
 }
+
 

@@ -14,6 +14,7 @@ type PodiumRanklistProps = {
   currentReferrerId?: string | null;
   backMode?: "self" | "all";
   backTitle?: string;
+  compact?: boolean;
 };
 
 function formatPoints(points: number) {
@@ -85,20 +86,29 @@ function PodiumSlot({
   rank,
   pillarHeight,
   winner = false,
+  compact = false,
 }: {
   entry: RankEntry;
   rank: 1 | 2 | 3;
   pillarHeight: number;
   winner?: boolean;
+  compact?: boolean;
 }) {
+  const avatarSize = winner
+    ? compact
+      ? "h-14 w-14"
+      : "h-16 w-16"
+    : compact
+      ? "h-11 w-11"
+      : "h-12 w-12";
   return (
     <div className="relative flex flex-col items-center justify-end">
       <div className={`mb-3 flex flex-col items-center text-center ${winner ? "-translate-y-1" : ""}`}>
-        <Avatar entry={entry} size={winner ? "h-16 w-16" : "h-12 w-12"} />
-        <p className={`mt-2 max-w-[140px] truncate font-semibold text-amber-50 ${winner ? "text-lg" : "text-sm"}`}>
+        <Avatar entry={entry} size={avatarSize} />
+        <p className={`mt-2 max-w-[140px] truncate font-semibold text-amber-50 ${winner ? (compact ? "text-base" : "text-lg") : "text-sm"}`}>
           {entry.name}
         </p>
-        <p className={`font-semibold text-amber-200 ${winner ? "text-base" : "text-sm"}`}>
+        <p className={`font-semibold text-amber-200 ${winner ? (compact ? "text-sm" : "text-base") : "text-sm"}`}>
           {formatPoints(entry.points)} Punkte
         </p>
       </div>
@@ -114,6 +124,7 @@ export function PodiumRanklist({
   currentReferrerId = null,
   backMode = "self",
   backTitle,
+  compact = false,
 }: PodiumRanklistProps) {
   const [flipped, setFlipped] = useState(false);
 
@@ -148,7 +159,9 @@ export function PodiumRanklist({
   return (
     <div className="perspective-[1600px]">
       <div
-        className={`relative min-h-[360px] transition-transform duration-700 [transform-style:preserve-3d] ${
+        className={`relative transition-transform duration-700 [transform-style:preserve-3d] ${
+          compact ? "min-h-[300px]" : "min-h-[360px]"
+        } ${
           flipped ? "[transform:rotateY(180deg)]" : ""
         }`}
       >
@@ -165,31 +178,33 @@ export function PodiumRanklist({
             <button
               type="button"
               onClick={() => setFlipped(true)}
-              className="absolute right-3 top-3 z-40 inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/55 bg-amber-200/95 text-base text-amber-950 shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-100"
+              className={`absolute right-3 top-3 z-40 inline-flex items-center justify-center rounded-full border border-amber-300/55 bg-amber-200/95 text-amber-950 shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-100 ${
+                compact ? "h-9 w-9 text-sm" : "h-10 w-10 text-base"
+              }`}
               title="Ansicht drehen"
               aria-label="Ranglisten-Details anzeigen"
             >
               {"\u21BB"}
             </button>
 
-            <div className="relative z-30 mt-2 h-[286px]">
+            <div className={`relative z-30 mt-2 ${compact ? "h-[226px]" : "h-[286px]"}`}>
               <div className="absolute inset-x-2 bottom-1 h-2 rounded-full bg-amber-200/35" />
 
               <div className="relative grid h-full grid-cols-3 items-end gap-2 sm:gap-3">
                 {second ? (
-                  <PodiumSlot entry={second} rank={2} pillarHeight={102} />
+                  <PodiumSlot entry={second} rank={2} pillarHeight={compact ? 80 : 102} compact={compact} />
                 ) : (
                   <div />
                 )}
 
                 {first ? (
-                  <PodiumSlot entry={first} rank={1} pillarHeight={152} winner />
+                  <PodiumSlot entry={first} rank={1} pillarHeight={compact ? 116 : 152} winner compact={compact} />
                 ) : (
                   <div />
                 )}
 
                 {third ? (
-                  <PodiumSlot entry={third} rank={3} pillarHeight={88} />
+                  <PodiumSlot entry={third} rank={3} pillarHeight={compact ? 68 : 88} compact={compact} />
                 ) : (
                   <div />
                 )}
@@ -212,7 +227,9 @@ export function PodiumRanklist({
               <button
                 type="button"
                 onClick={() => setFlipped(false)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-amber-300/55 bg-amber-200/95 text-lg text-amber-950 shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-100"
+                className={`inline-flex shrink-0 items-center justify-center rounded-full border border-amber-300/55 bg-amber-200/95 text-amber-950 shadow-[0_8px_20px_rgba(0,0,0,0.35)] transition hover:-translate-y-0.5 hover:bg-amber-100 ${
+                  compact ? "h-10 w-10 text-base" : "h-11 w-11 text-lg"
+                }`}
                 title="Zurück"
                 aria-label="Zur Rangliste zurück"
               >

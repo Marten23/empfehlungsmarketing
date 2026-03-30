@@ -22,6 +22,8 @@ import { getReferrerTheme } from "@/lib/ui/referrer-theme";
 import { PodiumRanklist } from "@/app/empfehler/dashboard/components/podium-ranklist";
 import { AdvisorBusinessImage } from "@/app/components/advisor-business-image";
 import { ReferrerInbox } from "@/app/empfehler/dashboard/components/referrer-inbox";
+import { buildWhatsAppShareUrlForFlow } from "@/lib/whatsapp/share";
+import { InstagramInviteButton } from "@/app/components/instagram-invite-button";
 import {
   deleteNotificationAction,
   markNotificationReadAction,
@@ -155,6 +157,8 @@ export default async function ReferrerDashboardPage({
   let leaderboard: LeaderboardEntry[] = [];
   let inboxNotifications: ReferrerInboxNotification[] = [];
   let inboxSurveys: ReferrerInboxSurvey[] = [];
+  let ordelyCooperationEnabled = false;
+  let ordelyPromoCode = "REWARO50";
   let loadError: string | null = null;
   let levelThresholds = {
     bronze: 100,
@@ -340,7 +344,7 @@ export default async function ReferrerDashboardPage({
 
     const { data: advisorCore, error: advisorCoreError } = await supabase
       .from("advisors")
-      .select("name, owner_user_id")
+      .select("name, owner_user_id, advisor_promo_code")
       .eq("id", referrerContext.advisorId)
       .maybeSingle();
 
@@ -355,6 +359,11 @@ export default async function ReferrerDashboardPage({
           subtitle: `Betreut durch ${advisorCore.name}`,
         };
       }
+      const promoCode = String(
+        (advisorCore as { advisor_promo_code?: string | null } | null)
+          ?.advisor_promo_code ?? "",
+      ).trim();
+      if (promoCode) ordelyPromoCode = promoCode;
 
       if (ownerUserId) {
         const { data: ownerProfile } = await supabase
@@ -385,7 +394,7 @@ export default async function ReferrerDashboardPage({
     const { data: settingsRow, error: settingsError } = await supabase
       .from("advisor_settings")
       .select(
-        "level_bronze_points, level_silver_points, level_gold_points, level_platinum_points, contact_name, contact_phone, contact_email, contact_avatar_url",
+        "level_bronze_points, level_silver_points, level_gold_points, level_platinum_points, contact_name, contact_phone, contact_email, contact_avatar_url, ordely_cooperation_enabled",
       )
       .eq("advisor_id", referrerContext.advisorId)
       .maybeSingle();
@@ -403,6 +412,7 @@ export default async function ReferrerDashboardPage({
         contact_phone?: string | null;
         contact_email?: string | null;
         contact_avatar_url?: string | null;
+        ordely_cooperation_enabled?: boolean | null;
       } | null;
       levelThresholds = {
         bronze: row?.level_bronze_points ?? 100,
@@ -420,6 +430,7 @@ export default async function ReferrerDashboardPage({
       if (contactPhone) advisorBanner.phone = contactPhone;
       if (contactEmail) advisorBanner.email = contactEmail;
       if (contactAvatar) advisorBanner.avatarUrl = contactAvatar;
+      ordelyCooperationEnabled = Boolean(row?.ordely_cooperation_enabled);
     }
   } catch (error) {
     loadError = normalizeSupabaseError(error).message;
@@ -432,6 +443,11 @@ export default async function ReferrerDashboardPage({
     referrerContext.inviteCode ??
     referrerContext.referrerId;
   const contactReferralLink = `${appBase}/ref/${contactReferralCode}`;
+  const referrerToContactWhatsAppUrl = buildWhatsAppShareUrlForFlow(
+    "referrer_to_contact",
+    contactReferralLink,
+  );
+  const ordelyPromoLink = "https://www.ordely.de";
 
   const levelProgress = getLevelProgress(lifetimeLevelPoints, levelThresholds);
   const nextReward = getNextReward(rewards, availablePoints);
@@ -446,7 +462,7 @@ export default async function ReferrerDashboardPage({
   const pointsToNextLevel = levelProgress.pointsToNextLevel;
 
   return (
-    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 p-4 pb-8 md:gap-5 md:p-6">
+    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-3 p-4 pb-8 md:gap-3 md:p-6">
       <div className={`pointer-events-none fixed inset-0 z-0 ${referrerTheme.backgroundClass}`} />
       <div
         className={`${referrerTheme.honeycombClass} ${referrerTheme.honeycombOpacityClass} pointer-events-none fixed inset-0 z-0`}
@@ -454,13 +470,13 @@ export default async function ReferrerDashboardPage({
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[4%] top-[18%] h-[220px] w-[260px] opacity-55">
           <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-orange-300/30 bg-orange-300/10" />
-          <div className="hex-node hex-pulse absolute left-14 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/18 [animation-delay:1.1s]" />
+          <div className="hex-node hex-pulse absolute left-14 top-0 h-20 w-20 border border-sky-300/35 bg-sky-300/14 [animation-delay:1.1s]" />
           <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2s]" />
           <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-orange-300/25 bg-orange-300/8 [animation-delay:2.7s]" />
         </div>
         <div className="absolute right-[5%] top-[56%] h-[240px] w-[300px] opacity-55">
           <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-orange-300/26 bg-orange-300/8 [animation-delay:0.8s]" />
-          <div className="hex-node hex-pulse absolute left-24 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/16 [animation-delay:1.6s]" />
+          <div className="hex-node hex-pulse absolute left-24 top-0 h-20 w-20 border border-sky-300/35 bg-sky-300/12 [animation-delay:1.6s]" />
           <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2.4s]" />
           <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-orange-300/24 bg-orange-300/8 [animation-delay:3.2s]" />
         </div>
@@ -468,9 +484,9 @@ export default async function ReferrerDashboardPage({
 
       <ReferrerAreaHeader active="dashboard" />
 
-      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-4 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-6">
-        <div className="grid gap-5 xl:grid-cols-[1.55fr_0.9fr]">
-          <div className="space-y-4">
+      <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-4 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-5">
+        <div className="grid gap-4 xl:grid-cols-[1.55fr_0.9fr]">
+          <div className="space-y-2.5">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-orange-300/50 bg-orange-100/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-orange-800">
                 <SparklesIcon className="h-3.5 w-3.5" />
@@ -481,19 +497,43 @@ export default async function ReferrerDashboardPage({
               </h1>
             </div>
 
-            <div className="rounded-2xl border border-orange-200/70 bg-white/82 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-orange-700">
-                Dein persönlicher Empfehlungslink
+            <div className="rounded-2xl border border-orange-300/65 bg-gradient-to-b from-orange-50/85 to-white p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.98),0_12px_24px_rgba(249,115,22,0.08)]">
+              <div className="flex items-center justify-between gap-3">
+                <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.11em] text-orange-800">
+                  <SparklesIcon className="h-3.5 w-3.5" />
+                  Dein persönlicher Empfehlungslink
+                </p>
+                <span className="rounded-full border border-orange-200/70 bg-white/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] text-orange-700">
+                  Sofort teilbar
+                </span>
+              </div>
+              <p className="mt-1.5 text-xs text-zinc-600">
+                Teile diesen Link direkt mit neuen Kontakten.
               </p>
-              <p className="mt-1 break-all rounded-lg border border-orange-200/70 bg-orange-50/70 px-2.5 py-1.5 font-mono text-[11px] text-zinc-700">
+              <p className="mt-2 break-all rounded-xl border border-orange-300/60 bg-white px-3 py-2 font-mono text-xs text-zinc-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                 {contactReferralLink}
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <CopyLinkButton
                   value={contactReferralLink}
                   idleLabel="Link kopieren"
-                  copiedLabel="Link kopiert"
-                  className="rounded-lg border border-orange-300/55 bg-white px-3 py-1.5 text-xs font-medium text-orange-800 transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100 hover:ring-1 hover:ring-orange-300/70"
+                  copiedLabel="Kopiert"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-300/55 bg-white px-4 text-sm font-semibold text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100 hover:text-orange-900 hover:ring-1 hover:ring-orange-400/70"
+                />
+                <a
+                  href={referrerToContactWhatsAppUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-500 bg-orange-500 px-4 text-sm font-semibold text-white shadow-[0_10px_18px_rgba(249,115,22,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-600 hover:ring-1 hover:ring-orange-400/70 hover:shadow-[0_12px_22px_rgba(249,115,22,0.28)]"
+                >
+                  Über WhatsApp einladen
+                </a>
+                <InstagramInviteButton
+                  flow="referrer_to_contact"
+                  inviteLink={contactReferralLink}
+                  mode="dm_only"
+                  label="Über Instagram einladen"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-300/55 bg-white px-4 text-sm font-semibold text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100 hover:text-orange-900 hover:ring-1 hover:ring-orange-400/70"
                 />
               </div>
             </div>
@@ -534,6 +574,39 @@ export default async function ReferrerDashboardPage({
               </div>
             </div>
 
+            {ordelyCooperationEnabled ? (
+              <div className="max-w-[560px] rounded-2xl border border-orange-300/65 bg-gradient-to-b from-orange-50/85 to-white p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.96),0_10px_20px_rgba(249,115,22,0.08)]">
+                <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.11em] text-orange-800">
+                  <SparklesIcon className="h-3.5 w-3.5" />
+                  Ordely Kooperation aktiv
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                  <p className="text-sm font-semibold text-zinc-900">
+                    Sichere dir 50 % auf dein erstes Jahr bei Ordely mit dem Code:
+                  </p>
+                  <span className="inline-flex items-center rounded-lg bg-orange-500 px-2.5 py-1 font-mono text-sm font-semibold text-white shadow-[0_8px_16px_rgba(249,115,22,0.25)]">
+                    {ordelyPromoCode}
+                  </span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2.5">
+                  <CopyLinkButton
+                    value={ordelyPromoCode}
+                    idleLabel="Code kopieren"
+                    copiedLabel="Kopiert"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-300/55 bg-white px-3.5 text-sm font-semibold text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100"
+                  />
+                  <a
+                    href={ordelyPromoLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-10 items-center justify-center rounded-xl bg-orange-500 px-4 text-sm font-semibold text-white shadow-[0_12px_22px_rgba(249,115,22,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-600"
+                  >
+                    Zu Ordely
+                  </a>
+                </div>
+              </div>
+            ) : null}
+
             <ReferrerInbox
               notifications={inboxNotifications}
               surveys={inboxSurveys}
@@ -543,14 +616,17 @@ export default async function ReferrerDashboardPage({
             />
           </div>
 
-          <aside className="overflow-hidden rounded-3xl border border-orange-200/70 bg-white/84 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+          <aside className="overflow-hidden rounded-3xl border border-orange-200/70 bg-white/84 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
+              Ihr Ansprechpartner
+            </p>
             <AdvisorBusinessImage
               imageUrl={advisorBanner.avatarUrl}
               name={advisorBanner.displayName}
               ratio="portrait"
-              className="mx-auto w-full max-w-[240px] rounded-b-none md:rounded-b-2xl"
+              className="mx-auto w-full max-w-[210px] rounded-2xl"
             />
-              <div className="space-y-3 px-4 py-4 text-center">
+              <div className="space-y-3 px-2 pt-4 text-center">
                 <div>
                   <p className="text-lg font-semibold text-zinc-900">{advisorBanner.displayName}</p>
                 </div>

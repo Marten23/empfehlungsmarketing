@@ -5,6 +5,7 @@ import { listDashboardReferrals } from "@/lib/queries/referrals";
 import { listReferrersForAdvisor } from "@/lib/queries/referrers";
 import { listRewardRedemptionsForAdvisor } from "@/lib/queries/rewards";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   ArrowUpRightIcon,
   BoltIcon,
@@ -81,7 +82,12 @@ export default async function DashboardPage() {
         row.status === "neu" || row.status === "kontaktiert" || row.status === "termin",
       ).length;
       closingCount = rows.filter((row) => row.status === "abschluss").length;
-      latestReferrals = rows.slice(0, 5);
+      const referralsWithoutAward = rows.filter((row) => row.awarded_points === null);
+      const latestAwardedReferral =
+        rows.find((row) => row.awarded_points !== null) ?? null;
+      latestReferrals = latestAwardedReferral
+        ? [...referralsWithoutAward, latestAwardedReferral]
+        : referralsWithoutAward;
 
       const referrerRows = await listReferrersForAdvisor(
         supabase,
@@ -110,7 +116,8 @@ export default async function DashboardPage() {
         .filter((value): value is string => Boolean(value));
       const avatarByUserId = new Map<string, string | null>();
       if (profileIds.length > 0) {
-        const { data: profileRows } = await supabase
+        const admin = createAdminClient();
+        const { data: profileRows } = await admin
           .from("profiles")
           .select("user_id, avatar_url")
           .in("user_id", profileIds);
@@ -229,8 +236,8 @@ export default async function DashboardPage() {
       ) : null}
 
       <section className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-white/95 p-4 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur-xl md:p-5">
-        <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="rounded-3xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_0%,rgba(255,230,170,0.18),transparent_42%),linear-gradient(165deg,rgba(34,28,22,0.95),rgba(17,14,12,0.96))] p-3 shadow-[inset_0_1px_0_rgba(255,240,210,0.14),0_24px_46px_rgba(10,8,6,0.58)] md:p-4">
+        <div className="grid gap-4 xl:grid-cols-[0.82fr_1.18fr]">
+          <div className="rounded-3xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_0%,rgba(255,230,170,0.18),transparent_42%),linear-gradient(165deg,rgba(34,28,22,0.95),rgba(17,14,12,0.96))] p-2.5 shadow-[inset_0_1px_0_rgba(255,240,210,0.14),0_24px_46px_rgba(10,8,6,0.58)] md:p-3">
             <div className="flex justify-center">
               <div className="inline-flex items-center gap-2 rounded-b-2xl rounded-t-xl border border-amber-300/35 bg-[linear-gradient(180deg,rgba(253,214,135,0.95),rgba(228,172,69,0.94))] px-4 py-1.5 shadow-[0_10px_24px_rgba(188,132,40,0.33)]">
                 <TrophyIcon className="h-4 w-4 text-white" />
@@ -244,6 +251,7 @@ export default async function DashboardPage() {
                 entries={leaderboard}
                 backMode="all"
                 backTitle="Alle Empfehler"
+                compact
               />
             </div>
           </div>

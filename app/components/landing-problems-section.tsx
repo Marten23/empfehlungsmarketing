@@ -90,7 +90,7 @@ export function LandingProblemsSection() {
         <h2 className="text-2xl font-semibold text-zinc-900 md:text-3xl">
           Typische Probleme im Empfehlungsprozess
         </h2>
-        <p className="mt-2 text-sm text-zinc-600 md:text-base">
+        <p className="mt-2 text-sm text-zinc-700 md:text-base">
           Warum Empfehlungen ohne System im Alltag verloren gehen
         </p>
       </div>
@@ -133,7 +133,7 @@ export function LandingProblemsSection() {
             >
               <p
                 className={`inline-flex rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${
-                  featured ? "bg-orange-400/20 text-orange-200" : "bg-zinc-100/80 text-zinc-700"
+                  featured ? "bg-orange-400/20 text-orange-200" : "bg-orange-100 text-orange-800"
                 }`}
               >
                 {problem.category}
@@ -144,7 +144,7 @@ export function LandingProblemsSection() {
               <p className={`mt-2 text-sm leading-relaxed ${featured ? "text-zinc-200" : "text-zinc-700"}`}>
                 {problem.description}
               </p>
-              <p className={`mt-2 text-xs font-medium leading-relaxed ${featured ? "text-orange-100" : "text-zinc-600"}`}>
+              <p className={`mt-2 text-xs font-medium leading-relaxed ${featured ? "text-orange-100" : "text-zinc-700"}`}>
                 {problem.consequence}
               </p>
             </article>
@@ -154,4 +154,3 @@ export function LandingProblemsSection() {
     </section>
   );
 }
-

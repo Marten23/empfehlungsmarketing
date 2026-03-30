@@ -35,7 +35,7 @@ export function RecentReferralsCard({ items }: RecentReferralsCardProps) {
         </h2>
         <Link
           href="/empfehler/empfehlungen"
-          className="group inline-flex items-center gap-2 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90 hover:drop-shadow-[0_0_8px_rgba(139,92,246,0.25)]"
+          className="group inline-flex items-center gap-2 text-sm text-orange-700 underline decoration-orange-300/60 underline-offset-4 transition-all duration-300 hover:text-orange-900 hover:decoration-orange-500/90 hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.25)]"
         >
           Alle Empfehlungen ansehen
           <ArrowUpRightIcon className="h-3.5 w-3.5 transition duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -82,3 +82,4 @@ export function RecentReferralsCard({ items }: RecentReferralsCardProps) {
     </section>
   );
 }
+

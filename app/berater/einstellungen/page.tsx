@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentAdvisorContext } from "@/lib/auth/advisor";
 import { normalizeSupabaseError } from "@/lib/supabase/errors";
+import { grantOrdelyPromoMonthsIfEligible } from "@/lib/queries/billing";
 import { AdvisorAreaHeader } from "@/app/berater/components/advisor-area-header";
 import { AdvisorBusinessImageUploader } from "@/app/berater/einstellungen/advisor-business-image-uploader";
 import { PreviewDialogTrigger } from "@/app/berater/einstellungen/preview-dialog-trigger";
@@ -24,6 +25,7 @@ type PageProps = {
     video_saved?: string;
     video_removed?: string;
     video_url?: string;
+    ordely_saved?: string;
     error?: string;
   }>;
 };
@@ -233,6 +235,102 @@ async function saveAdvisorPresentationSettingsAction(formData: FormData) {
   redirectWithQuery({ presentation_saved: "1" });
 }
 
+async function saveOrdelyCooperationSettingsAction(formData: FormData) {
+  "use server";
+
+  const { supabase, advisorContext } = await getCurrentAuthContext();
+
+  const requestedEnabled = String(formData.get("ordely_cooperation_enabled") ?? "") === "1";
+  const confirmBinding = String(formData.get("ordely_binding_confirmed") ?? "") === "1";
+
+  const { data: currentSettings, error: readError } = await supabase
+    .from("advisor_settings")
+    .select("ordely_cooperation_enabled, ordely_cooperation_lock_until")
+    .eq("advisor_id", advisorContext.advisorId)
+    .maybeSingle();
+
+  if (readError) {
+    const code = (readError as { code?: string }).code;
+    if (code === "PGRST204") {
+      redirectWithQuery({
+        error:
+          "Die Ordely-Kooperationsfelder fehlen noch in der Datenbank. Bitte Migration 032_ordely_cooperation_setting.sql ausführen.",
+      });
+    }
+    redirectWithQuery({ error: toErrorMessage(readError) });
+  }
+
+  const currentEnabled =
+    (currentSettings as { ordely_cooperation_enabled?: boolean | null } | null)
+      ?.ordely_cooperation_enabled ?? false;
+  const lockUntilRaw =
+    (currentSettings as { ordely_cooperation_lock_until?: string | null } | null)
+      ?.ordely_cooperation_lock_until ?? null;
+  const lockUntilDate = lockUntilRaw ? new Date(lockUntilRaw) : null;
+  const lockActive = Boolean(lockUntilDate && lockUntilDate.getTime() > Date.now());
+
+  if (!requestedEnabled && currentEnabled && lockActive) {
+    redirectWithQuery({
+      error:
+        "Die Ordely-Kooperation ist für 1 Jahr bindend und kann aktuell nicht deaktiviert werden.",
+    });
+  }
+
+  if (requestedEnabled && !currentEnabled && !confirmBinding) {
+    redirectWithQuery({
+      error:
+        "Bitte bestätigen Sie die 1-jährige Bindung, um die Ordely-Kooperation zu aktivieren.",
+    });
+  }
+
+  const nowIso = new Date().toISOString();
+  const lockUntilIso = new Date(
+    Date.now() + 365 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+
+  const payload: {
+    advisor_id: string;
+    ordely_cooperation_enabled: boolean;
+    ordely_cooperation_confirmed_at?: string | null;
+    ordely_cooperation_lock_until?: string | null;
+  } = {
+    advisor_id: advisorContext.advisorId,
+    ordely_cooperation_enabled: requestedEnabled,
+  };
+
+  if (requestedEnabled && !currentEnabled) {
+    payload.ordely_cooperation_confirmed_at = nowIso;
+    payload.ordely_cooperation_lock_until = lockUntilIso;
+  } else if (!requestedEnabled) {
+    payload.ordely_cooperation_confirmed_at = null;
+    payload.ordely_cooperation_lock_until = null;
+  }
+
+  const { error: writeError } = await supabase
+    .from("advisor_settings")
+    .upsert(payload, { onConflict: "advisor_id" });
+
+  if (writeError) {
+    redirectWithQuery({ error: toErrorMessage(writeError) });
+  }
+  if (requestedEnabled && !currentEnabled) {
+    const grantError = await (async () => {
+      try {
+        await grantOrdelyPromoMonthsIfEligible(supabase, advisorContext.advisorId);
+        return null;
+      } catch (error) {
+        return normalizeSupabaseError(error).message;
+      }
+    })();
+    if (grantError) {
+      redirectWithQuery({ error: grantError });
+    }
+  }
+
+  revalidateAdvisorSettingsArea();
+  redirectWithQuery({ ordely_saved: "1" });
+}
+
 async function uploadAdvisorContactImageAction(formData: FormData) {
   "use server";
 
@@ -425,12 +523,14 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
   let welcomeText = "";
   let welcomeVideoUrl = "";
   let showWelcomeVideo = false;
+  let ordelyCooperationEnabled = false;
+  let ordelyCooperationLockUntil = "";
   let referralPreviewPath: string | null = null;
 
   const { data: settingsRow, error: settingsError } = await supabase
     .from("advisor_settings")
     .select(
-      "points_per_successful_referral, auto_award_points_on_referral_close, level_bronze_points, level_silver_points, level_gold_points, level_platinum_points, contact_name, contact_phone, contact_email, contact_avatar_url, welcome_text, welcome_video_url, show_welcome_video_on_referral_page",
+      "points_per_successful_referral, auto_award_points_on_referral_close, level_bronze_points, level_silver_points, level_gold_points, level_platinum_points, contact_name, contact_phone, contact_email, contact_avatar_url, welcome_text, welcome_video_url, show_welcome_video_on_referral_page, ordely_cooperation_enabled, ordely_cooperation_lock_until",
     )
     .eq("advisor_id", advisorContext.advisorId)
     .maybeSingle();
@@ -455,6 +555,8 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
       welcome_text?: string | null;
       welcome_video_url?: string | null;
       show_welcome_video_on_referral_page?: boolean | null;
+      ordely_cooperation_enabled?: boolean | null;
+      ordely_cooperation_lock_until?: string | null;
     } | null;
 
     pointsPerSuccessfulReferral = row?.points_per_successful_referral ?? 100;
@@ -470,6 +572,8 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
     welcomeText = row?.welcome_text ?? "";
     welcomeVideoUrl = row?.welcome_video_url ?? "";
     showWelcomeVideo = Boolean(row?.show_welcome_video_on_referral_page);
+    ordelyCooperationEnabled = Boolean(row?.ordely_cooperation_enabled);
+    ordelyCooperationLockUntil = String(row?.ordely_cooperation_lock_until ?? "");
   }
 
   const { data: previewReferrer } = await supabase
@@ -565,6 +669,11 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
           Begrüßungsvideo entfernt.
         </p>
       ) : null}
+      {params.ordely_saved === "1" ? (
+        <p className="rounded-xl border border-emerald-300/70 bg-emerald-50/95 px-3 py-2 text-sm text-emerald-800">
+          Ordely-Kooperation gespeichert.
+        </p>
+      ) : null}
       {params.error ? (
         <p className="rounded-xl border border-rose-300/70 bg-rose-50/95 px-3 py-2 text-sm text-rose-700">
           {decodeURIComponent(params.error)}
@@ -613,7 +722,7 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                 </div>
               </section>
 
-              <div className="grid gap-4 self-start">
+              <div className="grid gap-3 self-start">
                 <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-2.5">
                   <h3 className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-orange-700">
                     <TrophyIcon className="h-4 w-4 text-orange-700" />
@@ -666,29 +775,47 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                   </form>
                 </section>
 
-                <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Vorschau-Link</h3>
+                <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-2.5">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Ordely-Kooperation</h3>
                   <p className="mt-1 text-sm text-zinc-600">
-                    Öffnen Sie die Neukontakt-Linkseite in einem separaten Fenster aus Kundensicht.
+                    Aktivierung bringt 2 Gratismonate. Bei aktiver Kooperation wird der Ordely-Hinweis im Empfehler-Dashboard sichtbar.
                   </p>
-                  <div className="mt-4">
-                    <PreviewDialogTrigger
-                      previewPath={referralPreviewPath}
-                      previewName={previewName}
-                      previewPhone={previewPhone}
-                      previewEmail={previewEmail}
-                      contactAvatarUrl={contactAvatarUrl || null}
-                      welcomeText={welcomeText}
-                      showWelcomeVideo={showWelcomeVideo}
-                      welcomeVideoUrl={effectiveWelcomeVideoUrl || null}
+                  <form action={saveOrdelyCooperationSettingsAction} className="mt-2.5 grid gap-2">
+                    <input
+                      type="hidden"
+                      name="ordely_cooperation_enabled"
+                      value={ordelyCooperationEnabled ? "0" : "1"}
                     />
-                  </div>
+                    {!ordelyCooperationEnabled ? (
+                      <label className="inline-flex items-start gap-2 text-xs text-zinc-700">
+                        <input
+                          type="checkbox"
+                          name="ordely_binding_confirmed"
+                          value="1"
+                          className="mt-0.5"
+                          required
+                        />
+                        <span>
+                          Ich bestätige die 1-jährige Bindung nach Aktivierung der Ordely-Kooperation.
+                        </span>
+                      </label>
+                    ) : null}
+                    <p className="rounded-lg border border-orange-200/70 bg-white/85 px-2.5 py-1.5 text-xs text-zinc-700">
+                      Status: <span className="font-semibold text-zinc-900">{ordelyCooperationEnabled ? "Aktiv" : "Inaktiv"}</span>
+                      {ordelyCooperationEnabled && ordelyCooperationLockUntil
+                        ? ` · Bindend bis ${new Date(ordelyCooperationLockUntil).toLocaleDateString("de-DE")}`
+                        : ""}
+                    </p>
+                    <button type="submit" className={primaryButtonClass}>
+                      {ordelyCooperationEnabled ? "Kooperation deaktivieren" : "Kooperation aktivieren"}
+                    </button>
+                  </form>
                 </section>
               </div>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-2">
-              <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
+            <div className="grid gap-3 xl:grid-cols-2">
+              <section className="h-full rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Begrüßungstext & Video-Freigabe</h3>
                 <form action={saveAdvisorPresentationSettingsAction} className="mt-2.5 grid gap-2">
                   <WelcomeTextField
@@ -722,7 +849,7 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                 </form>
               </section>
 
-              <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
+              <section className="h-full rounded-2xl border border-orange-200/70 bg-orange-50/65 p-3">
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Video hochladen</h3>
                 <form action={uploadAdvisorWelcomeVideoAction} className="mt-2.5 grid gap-2">
                   <p className="rounded-lg border border-orange-200/70 bg-white/85 px-2.5 py-1.5 text-xs text-zinc-700">
@@ -754,11 +881,31 @@ export default async function AdvisorSettingsPage({ searchParams }: PageProps) {
                 </form>
               </section>
             </div>
+
+            <section className="rounded-2xl border border-orange-200/70 bg-orange-50/65 p-2.5">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-orange-700">Vorschau-Link</h3>
+              <p className="mt-1 text-sm text-zinc-600">
+                Öffnen Sie die Neukontakt-Linkseite in einem separaten Fenster aus Kundensicht.
+              </p>
+              <div className="mt-3">
+                <PreviewDialogTrigger
+                  previewPath={referralPreviewPath}
+                  previewName={previewName}
+                  previewPhone={previewPhone}
+                  previewEmail={previewEmail}
+                  contactAvatarUrl={contactAvatarUrl || null}
+                  welcomeText={welcomeText}
+                  showWelcomeVideo={showWelcomeVideo}
+                  welcomeVideoUrl={effectiveWelcomeVideoUrl || null}
+                />
+              </div>
+            </section>
           </div>
         </article>
       </section>
     </main>
   );
 }
+
 
 

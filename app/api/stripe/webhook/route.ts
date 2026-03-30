@@ -43,6 +43,133 @@ function getInvoiceLineInterval(invoice: Stripe.Invoice): "monthly" | "annual" |
   return intervalFromStripe(firstLine?.price?.recurring?.interval ?? null);
 }
 
+async function applyFreeMonthCreditToInvoice(params: {
+  advisorId: string;
+  customerId: string;
+  currency: string;
+  amountDueCents: number;
+  periodStart: string | null;
+  periodEnd: string | null;
+  invoiceId: string;
+}): Promise<void> {
+  if (!params.periodStart) return;
+  if (params.amountDueCents <= 0) return;
+
+  const stripe = getStripeServerClient();
+  const admin = createAdminClient();
+
+  const { data: existingConsumption, error: existingConsumptionError } = await admin
+    .from("advisor_billing_credit_ledger")
+    .select("id, metadata")
+    .eq("advisor_id", params.advisorId)
+    .eq("source", "system")
+    .eq("months_delta", -1)
+    .contains("metadata", {
+      consume_scope: "stripe_invoice_credit",
+      invoice_id: params.invoiceId,
+    })
+    .limit(1);
+
+  if (existingConsumptionError) {
+    throw existingConsumptionError;
+  }
+  if ((existingConsumption ?? []).length > 0) {
+    return;
+  }
+
+  const { data: availableBalance, error: availableBalanceError } = await admin.rpc(
+    "compute_referral_free_months_available",
+    { p_advisor_id: params.advisorId },
+  );
+  if (availableBalanceError) {
+    throw availableBalanceError;
+  }
+
+  if (Number(availableBalance ?? 0) <= 0) {
+    return;
+  }
+
+  const balanceTx = await stripe.customers.createBalanceTransaction(
+    params.customerId,
+    {
+      amount: -params.amountDueCents,
+      currency: params.currency,
+      description: "Rewaro Gratismonat",
+      metadata: {
+        advisor_id: params.advisorId,
+        invoice_id: params.invoiceId,
+        consume_scope: "stripe_invoice_credit",
+        period_start: params.periodStart,
+        period_end: params.periodEnd ?? "",
+      },
+    },
+    {
+      idempotencyKey: `rewaro-free-month-${params.invoiceId}`,
+    },
+  );
+
+  const nowIso = new Date().toISOString();
+  const { error: consumeError } = await admin.from("advisor_billing_credit_ledger").insert({
+    advisor_id: params.advisorId,
+    source: "system",
+    source_referral_qualification_id: null,
+    months_delta: -1,
+    available_from: nowIso,
+    consumed_at: nowIso,
+    note: "Applied free month credit to Stripe invoice",
+    metadata: {
+      consume_scope: "stripe_invoice_credit",
+      period_start: params.periodStart,
+      period_end: params.periodEnd,
+      invoice_id: params.invoiceId,
+      stripe_balance_transaction_id: balanceTx.id,
+      credited_amount_cents: params.amountDueCents,
+      currency: params.currency,
+    },
+  });
+
+  if (consumeError) {
+    throw consumeError;
+  }
+}
+
+async function handleInvoiceCreated(invoice: Stripe.Invoice): Promise<void> {
+  const customerId =
+    typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  if (!customerId) return;
+
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
+  const advisor = await resolveAdvisorForStripeEvent({
+    advisorIdFromMetadata: invoice.lines.data[0]?.metadata?.advisor_id ?? null,
+    customerId,
+    subscriptionId,
+  });
+  if (!advisor) return;
+
+  const interval = getInvoiceLineInterval(invoice);
+  if (interval !== "monthly") return;
+
+  const firstLine = invoice.lines.data[0];
+  const periodStartIso = toIso(firstLine?.period?.start);
+  const periodEndIso = toIso(firstLine?.period?.end);
+
+  await updateAdvisorStripeIds({
+    advisorId: advisor.id,
+    customerId,
+    subscriptionId,
+  });
+
+  await applyFreeMonthCreditToInvoice({
+    advisorId: advisor.id,
+    customerId,
+    currency: invoice.currency,
+    amountDueCents: Number(invoice.amount_due ?? 0),
+    periodStart: periodStartIso,
+    periodEnd: periodEndIso,
+    invoiceId: invoice.id,
+  });
+}
+
 function getSubscriptionPeriod(subscription: Stripe.Subscription): {
   start: string | null;
   end: string | null;
@@ -189,6 +316,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
 
   const firstLine = invoice.lines.data[0];
   const interval = getInvoiceLineInterval(invoice);
+  const periodStartIso = toIso(firstLine?.period?.start);
+  const periodEndIso = toIso(firstLine?.period?.end);
 
   await updateAdvisorStripeIds({
     advisorId: advisor.id,
@@ -200,8 +329,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
     advisorId: advisor.id,
     status: "active_paid",
     billingInterval: interval,
-    periodStart: toIso(firstLine?.period?.start),
-    periodEnd: toIso(firstLine?.period?.end),
+    periodStart: periodStartIso,
+    periodEnd: periodEndIso,
     mode: mapStripeLivemodeToBillingMode(invoice.livemode),
   });
 }
@@ -333,6 +462,9 @@ export async function POST(request: Request) {
         await handleCheckoutSessionCompleted(
           event.data.object as Stripe.Checkout.Session,
         );
+        break;
+      case "invoice.created":
+        await handleInvoiceCreated(event.data.object as Stripe.Invoice);
         break;
       case "invoice.paid":
         await handleInvoicePaid(event.data.object as Stripe.Invoice);

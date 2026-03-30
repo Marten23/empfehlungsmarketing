@@ -61,17 +61,23 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
 
   return (
     <>
-      <header className="relative z-30">
+      <header className="relative z-[70]">
         <div className="mx-auto w-full max-w-7xl px-0">
-          <div className="rounded-3xl border border-zinc-200/85 bg-white/93 px-4 py-0.5 shadow-[0_14px_30px_rgba(15,23,42,0.1)] backdrop-blur-xl md:px-5 md:py-1">
-            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+          <div className="relative overflow-visible rounded-3xl border border-zinc-200/85 bg-white/93 px-4 py-0.5 shadow-[0_14px_30px_rgba(15,23,42,0.1)] backdrop-blur-xl md:px-5 md:py-1">
+            <div className="pointer-events-none absolute inset-y-0 left-3 w-24 -skew-x-[24deg] bg-gradient-to-b from-zinc-950/14 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 left-10 w-16 -skew-x-[24deg] bg-gradient-to-b from-zinc-900/10 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-3 w-24 skew-x-[24deg] bg-gradient-to-b from-zinc-950/14 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-10 w-16 skew-x-[24deg] bg-gradient-to-b from-zinc-900/10 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-zinc-900/8" />
+
+            <div className="relative grid grid-cols-[auto_1fr_auto] items-center gap-3">
               <div className="flex items-center gap-2 md:gap-4">
                 <Link
                   href="/empfehler/dashboard"
                   className="inline-flex items-center transition-transform duration-300 hover:-translate-y-0.5"
                 >
                   <Image
-                    src="/Logo/ChatGPT Image 22. März 2026, 09_33_57.transparent.png"
+                    src="/Logo/rewaro Logo neu.png"
                     alt="Rewaro"
                     width={260}
                     height={78}
@@ -106,11 +112,11 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
               </nav>
 
               <div className="flex items-center justify-end gap-2.5">
-                <details className="relative md:hidden">
+                <details className="relative z-[90] md:hidden">
                   <summary className="list-none cursor-pointer rounded-xl border border-orange-300/55 bg-white/90 px-3 py-1.5 text-sm font-semibold text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)] transition-all hover:bg-orange-100">
                     Menü
                   </summary>
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl border border-orange-200/70 bg-white/96 p-2 shadow-[0_16px_30px_rgba(15,23,42,0.12)]">
+                  <div className="absolute right-0 z-[100] mt-2 w-48 rounded-xl border border-orange-200/70 bg-white/96 p-2 shadow-[0_16px_30px_rgba(15,23,42,0.12)]">
                     {navItems.map((item) => (
                       <Link
                         key={item.key}
@@ -129,7 +135,7 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
                   </div>
                 </details>
 
-                <details className="relative">
+                <details className="relative z-[90]">
                   <summary className="list-none cursor-pointer">
                     <span className="inline-flex items-center gap-2 rounded-2xl border border-orange-300/55 bg-white/88 px-2 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_10px_22px_rgba(249,115,22,0.14)] transition-all hover:-translate-y-0.5 hover:bg-orange-100/75">
                       {profileAvatar ? (
@@ -150,7 +156,7 @@ export async function ReferrerAreaHeader({ active }: ReferrerAreaHeaderProps) {
                     </span>
                   </summary>
 
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-orange-200/70 bg-white/96 p-2 shadow-[0_16px_30px_rgba(15,23,42,0.12)]">
+                  <div className="absolute right-0 z-[100] mt-2 w-56 rounded-xl border border-orange-200/70 bg-white/96 p-2 shadow-[0_16px_30px_rgba(15,23,42,0.12)]">
                     <div className="rounded-lg border border-orange-100/80 bg-orange-50/65 px-2.5 py-2">
                       <p className="truncate text-sm font-semibold text-zinc-900">{profileName}</p>
                       <p className="truncate text-xs text-zinc-600">

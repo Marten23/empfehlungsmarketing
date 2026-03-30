@@ -7,9 +7,13 @@ type RequiredStripeEnv = {
   STRIPE_PRICE_MONTHLY_TIER_1: string;
   STRIPE_PRICE_MONTHLY_TIER_2: string;
   STRIPE_PRICE_MONTHLY_TIER_3: string;
+  STRIPE_PRICE_MONTHLY_TIER_4: string;
+  STRIPE_PRICE_MONTHLY_TIER_5: string;
   STRIPE_PRICE_ANNUAL_TIER_1: string;
   STRIPE_PRICE_ANNUAL_TIER_2: string;
   STRIPE_PRICE_ANNUAL_TIER_3: string;
+  STRIPE_PRICE_ANNUAL_TIER_4: string;
+  STRIPE_PRICE_ANNUAL_TIER_5: string;
 };
 
 export type StripeServerConfig = RequiredStripeEnv & {
@@ -53,9 +57,13 @@ export function getStripeServerConfig(): StripeServerConfig {
     STRIPE_PRICE_MONTHLY_TIER_1: readRequired("STRIPE_PRICE_MONTHLY_TIER_1"),
     STRIPE_PRICE_MONTHLY_TIER_2: readRequired("STRIPE_PRICE_MONTHLY_TIER_2"),
     STRIPE_PRICE_MONTHLY_TIER_3: readRequired("STRIPE_PRICE_MONTHLY_TIER_3"),
+    STRIPE_PRICE_MONTHLY_TIER_4: readRequired("STRIPE_PRICE_MONTHLY_TIER_4"),
+    STRIPE_PRICE_MONTHLY_TIER_5: readRequired("STRIPE_PRICE_MONTHLY_TIER_5"),
     STRIPE_PRICE_ANNUAL_TIER_1: readRequired("STRIPE_PRICE_ANNUAL_TIER_1"),
     STRIPE_PRICE_ANNUAL_TIER_2: readRequired("STRIPE_PRICE_ANNUAL_TIER_2"),
     STRIPE_PRICE_ANNUAL_TIER_3: readRequired("STRIPE_PRICE_ANNUAL_TIER_3"),
+    STRIPE_PRICE_ANNUAL_TIER_4: readRequired("STRIPE_PRICE_ANNUAL_TIER_4"),
+    STRIPE_PRICE_ANNUAL_TIER_5: readRequired("STRIPE_PRICE_ANNUAL_TIER_5"),
     STRIPE_LIFETIME_COUPON_ID:
       process.env.STRIPE_LIFETIME_COUPON_ID?.trim() || null,
     APP_URL: appUrl,
@@ -63,4 +71,3 @@ export function getStripeServerConfig(): StripeServerConfig {
     STRIPE_CHECKOUT_CANCEL_URL: cancelUrl,
   };
 }
-

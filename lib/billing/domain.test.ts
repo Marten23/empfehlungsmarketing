@@ -17,6 +17,10 @@ describe("billing domain pricing", () => {
     assert.equal(resolveTierByPosition(11), "early");
     assert.equal(resolveTierByPosition(50), "early");
     assert.equal(resolveTierByPosition(51), "standard");
+    assert.equal(resolveTierByPosition(150), "standard");
+    assert.equal(resolveTierByPosition(151), "scale");
+    assert.equal(resolveTierByPosition(500), "scale");
+    assert.equal(resolveTierByPosition(501), "market");
   });
 
   it("applies annual setup discount of 200 EUR", () => {
@@ -65,9 +69,9 @@ describe("billing domain pricing", () => {
   });
 
   it("computes annual snapshot from monthly snapshot", () => {
-    const monthly = resolveMonthlyFeeCents("early");
-    assert.equal(monthly, 5_999);
-    assert.equal(resolveAnnualFeeCents(monthly), 71_988);
+    assert.equal(resolveAnnualFeeCents("early"), 71_988);
+    assert.equal(resolveAnnualFeeCents("scale"), 119_988);
+    assert.equal(resolveAnnualFeeCents("market"), 179_988);
   });
 
   it("applies active lifetime discount on annual recurring price", () => {
@@ -97,4 +101,3 @@ describe("billing domain pricing", () => {
     assert.equal(snapshot.finalRecurringPriceSnapshotCents, snapshot.annualPriceSnapshotCents);
   });
 });
-

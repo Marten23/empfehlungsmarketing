@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { submitPublicReferralRpc } from "@/lib/queries/public-referral";
+import { notifyAdvisorAboutNewPublicContact } from "@/lib/notifications/new-contact";
 
 export type PublicReferralFormState = {
   success: boolean;
@@ -18,7 +19,21 @@ export async function submitPublicReferral(
   const email = String(formData.get("contact_email") ?? "").trim().toLowerCase();
   const phone = String(formData.get("contact_phone") ?? "").trim();
   const note = String(formData.get("contact_note") ?? "").trim();
+  const selectedDays = formData
+    .getAll("contact_days")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  const contactTimeFrom = String(formData.get("contact_time_from") ?? "").trim();
+  const contactPreference = String(formData.get("contact_preference") ?? "").trim();
   const privacyAccepted = String(formData.get("privacy_accepted") ?? "") === "yes";
+
+  let preferenceLabel: string | null = null;
+  if (contactPreference === "call") preferenceLabel = "Bitte anrufen";
+  if (contactPreference === "message") preferenceLabel = "Bitte per Nachricht kontaktieren";
+  const normalizedContactPreference =
+    contactPreference === "call" || contactPreference === "message"
+      ? contactPreference
+      : null;
 
   if (!contactName && !email && !phone) {
     return {
@@ -39,13 +54,42 @@ export async function submitPublicReferral(
   const supabase = await createClient();
 
   try {
-    await submitPublicReferralRpc(supabase, {
+    console.info("[PublicReferral] Submit start", {
+      code,
+      hasName: Boolean(contactName),
+      hasEmail: Boolean(email),
+      hasPhone: Boolean(phone),
+      selectedDaysCount: selectedDays.length,
+      hasContactTimeFrom: Boolean(contactTimeFrom),
+      contactPreference: normalizedContactPreference,
+    });
+
+    const referralId = await submitPublicReferralRpc(supabase, {
       code,
       contact_name: contactName || null,
       contact_email: email || null,
       contact_phone: phone || null,
       contact_note: note || null,
     });
+    if (!referralId) {
+      throw new Error("Referral konnte nach Submit nicht ermittelt werden.");
+    }
+
+    try {
+      await notifyAdvisorAboutNewPublicContact({
+        referralId,
+        sourceCode: code,
+        contactName: contactName || null,
+        contactEmail: email || null,
+        contactPhone: phone || null,
+        contactNote: note || null,
+        contactDays: selectedDays,
+        contactTimeFrom: contactTimeFrom || null,
+        contactPreference: normalizedContactPreference,
+      });
+    } catch (notificationError) {
+      console.error("notifyAdvisorAboutNewPublicContact failed:", notificationError);
+    }
 
     return {
       success: true,

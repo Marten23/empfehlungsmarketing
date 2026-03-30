@@ -88,7 +88,7 @@ export default async function ReferrerRecommendationsPage() {
   const lastSuccess = referrals.find((row) => row.status === "abschluss") ?? null;
 
   return (
-    <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
+    <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 p-4 pb-8 md:gap-5 md:p-6">
       <div className={`pointer-events-none fixed inset-0 z-0 ${referrerTheme.backgroundClass}`} />
       <div
         className={`${referrerTheme.honeycombClass} ${referrerTheme.honeycombOpacityClass} pointer-events-none fixed inset-0 z-0`}
@@ -96,13 +96,13 @@ export default async function ReferrerRecommendationsPage() {
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-[4%] top-[18%] h-[220px] w-[260px] opacity-55">
           <div className="hex-node hex-pulse absolute left-0 top-6 h-14 w-14 border border-orange-300/30 bg-orange-300/10" />
-          <div className="hex-node hex-pulse absolute left-14 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/18 [animation-delay:1.1s]" />
+          <div className="hex-node hex-pulse absolute left-14 top-0 h-20 w-20 border border-sky-300/35 bg-sky-300/14 [animation-delay:1.1s]" />
           <div className="hex-node hex-pulse absolute left-28 top-10 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2s]" />
           <div className="hex-node hex-pulse absolute left-9 top-20 h-16 w-16 border border-orange-300/25 bg-orange-300/8 [animation-delay:2.7s]" />
         </div>
         <div className="absolute right-[5%] top-[56%] h-[240px] w-[300px] opacity-55">
           <div className="hex-node hex-pulse absolute left-6 top-4 h-16 w-16 border border-orange-300/26 bg-orange-300/8 [animation-delay:0.8s]" />
-          <div className="hex-node hex-pulse absolute left-24 top-0 h-20 w-20 border border-[#9F7CFF]/45 bg-[#6E44FF]/16 [animation-delay:1.6s]" />
+          <div className="hex-node hex-pulse absolute left-24 top-0 h-20 w-20 border border-sky-300/35 bg-sky-300/12 [animation-delay:1.6s]" />
           <div className="hex-node hex-pulse absolute left-46 top-12 h-14 w-14 border border-orange-300/26 bg-orange-200/12 [animation-delay:2.4s]" />
           <div className="hex-node hex-pulse absolute left-16 top-24 h-16 w-16 border border-orange-300/24 bg-orange-300/8 [animation-delay:3.2s]" />
         </div>

@@ -1,4 +1,4 @@
-export type ReferrerThemeKey = "lila" | "midnight";
+﻿export type ReferrerThemeKey = "lila" | "midnight";
 
 type ReferrerThemeConfig = {
   key: ReferrerThemeKey;
@@ -11,19 +11,19 @@ type ReferrerThemeConfig = {
 const referrerThemes: Record<ReferrerThemeKey, ReferrerThemeConfig> = {
   lila: {
     key: "lila",
-    label: "Lila (heller)",
+    label: "Warm (hell)",
     backgroundClass:
-      "bg-[radial-gradient(circle_at_15%_0%,rgba(158,116,255,0.34),transparent_38%),radial-gradient(circle_at_85%_8%,rgba(191,154,255,0.28),transparent_36%),linear-gradient(180deg,#26183f_0%,#1d1232_100%)]",
-    honeycombClass: "hex-honeycomb-bg-referrer",
-    honeycombOpacityClass: "opacity-40",
+      "bg-[radial-gradient(circle_at_12%_0%,rgba(251,146,60,0.18),transparent_40%),radial-gradient(circle_at_88%_6%,rgba(96,165,250,0.16),transparent_38%),linear-gradient(180deg,#fcfcff_0%,#f6f8ff_45%,#edf2ff_100%)]",
+    honeycombClass: "hex-honeycomb-bg",
+    honeycombOpacityClass: "opacity-[0.1]",
   },
   midnight: {
     key: "midnight",
-    label: "Midnight (dunkler)",
+    label: "Slate (dunkel)",
     backgroundClass:
-      "bg-[radial-gradient(circle_at_15%_0%,rgba(126,87,255,0.24),transparent_34%),radial-gradient(circle_at_85%_8%,rgba(159,124,255,0.2),transparent_32%),linear-gradient(180deg,#150d24_0%,#120a1f_100%)]",
+      "bg-[radial-gradient(circle_at_15%_0%,rgba(251,146,60,0.12),transparent_34%),radial-gradient(circle_at_85%_8%,rgba(59,130,246,0.12),transparent_32%),linear-gradient(180deg,#f6f8ff_0%,#edf2ff_100%)]",
     honeycombClass: "hex-honeycomb-bg",
-    honeycombOpacityClass: "opacity-22",
+    honeycombOpacityClass: "opacity-[0.08]",
   },
 };
 
@@ -36,4 +36,5 @@ export function getReferrerTheme(value: unknown): ReferrerThemeConfig {
   if (value === "midnight") return referrerThemes.midnight;
   return referrerThemes.lila;
 }
+
 

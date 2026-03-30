@@ -24,8 +24,8 @@ export function AdvisorIntroPanel({
   const [showVideo, setShowVideo] = useState(false);
 
   const mediaLabel = useMemo(() => {
-    if (!hasVideo) return "Businessbild";
-    return showVideo ? "Begrüßungsvideo" : "Businessbild";
+    if (!hasVideo) return "Ihr Ansprechpartner";
+    return showVideo ? "Begrüßungsvideo" : "Ihr Ansprechpartner";
   }, [hasVideo, showVideo]);
 
   return (

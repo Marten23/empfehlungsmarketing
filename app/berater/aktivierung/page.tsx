@@ -46,7 +46,7 @@ export default async function AdvisorActivationPage() {
 
   const { data: advisorRow } = await supabase
     .from("advisors")
-    .select(
+      .select(
       "id, pricing_tier, referred_by_advisor_id, account_status, lifetime_discount_state, lifetime_discount_percent",
     )
     .eq("id", advisorContext.advisorId)
@@ -55,7 +55,7 @@ export default async function AdvisorActivationPage() {
   const advisor = advisorRow as
     | {
         id: string;
-        pricing_tier: "founder" | "early" | "standard";
+        pricing_tier: "founder" | "early" | "standard" | "scale" | "market";
         referred_by_advisor_id: string | null;
         account_status: string | null;
         lifetime_discount_state: "inactive" | "pending_next_cycle" | "active" | null;

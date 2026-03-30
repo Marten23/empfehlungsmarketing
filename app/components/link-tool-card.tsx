@@ -1,4 +1,4 @@
-﻿import type { ComponentType, SVGProps } from "react";
+﻿import type { ComponentType, ReactNode, SVGProps } from "react";
 import { CopyLinkButton } from "@/app/dashboard/referrers/copy-link-button";
 
 type LinkToolCardProps = {
@@ -6,7 +6,11 @@ type LinkToolCardProps = {
   audienceLabel: string;
   helperText: string;
   link: string;
-  code: string;
+  code?: string;
+  showCode?: boolean;
+  whatsappShareUrl?: string | null;
+  whatsappLabel?: string;
+  instagramAction?: ReactNode;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
@@ -16,6 +20,10 @@ export function LinkToolCard({
   helperText,
   link,
   code,
+  showCode = true,
+  whatsappShareUrl = null,
+  whatsappLabel = "Über WhatsApp einladen",
+  instagramAction = null,
   icon: Icon,
 }: LinkToolCardProps) {
   return (
@@ -42,14 +50,16 @@ export function LinkToolCard({
         <p className="mt-1 break-all font-mono text-xs text-zinc-800">{link}</p>
       </div>
 
-      <div className="mt-2 rounded-xl border border-orange-200/70 bg-white/88 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-        <p className="text-[11px] uppercase tracking-wide text-zinc-500">
-          Ihr persönlicher Einladungscode
-        </p>
-        <p className="mt-1 inline-flex rounded-md border border-orange-200/80 bg-orange-50 px-2 py-1 font-mono text-xs font-semibold text-orange-800">
-          {code}
-        </p>
-      </div>
+      {showCode && code ? (
+        <div className="mt-2 rounded-xl border border-orange-200/70 bg-white/88 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          <p className="text-[11px] uppercase tracking-wide text-zinc-500">
+            Ihr persönlicher Einladungscode
+          </p>
+          <p className="mt-1 inline-flex rounded-md border border-orange-200/80 bg-orange-50 px-2 py-1 font-mono text-xs font-semibold text-orange-800">
+            {code}
+          </p>
+        </div>
+      ) : null}
 
       <div className="mt-3 flex flex-wrap gap-2">
         <CopyLinkButton
@@ -57,9 +67,19 @@ export function LinkToolCard({
           idleLabel="Link kopieren"
           copiedLabel="Link kopiert"
           className="rounded border border-orange-300/55 bg-white px-3 py-1 text-xs font-medium text-orange-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-orange-100 hover:text-orange-900 hover:ring-1 hover:ring-orange-400/70 hover:shadow-[0_12px_22px_rgba(249,115,22,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-        />      </div>
+        />
+        {whatsappShareUrl ? (
+          <a
+            href={whatsappShareUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded border border-orange-500 bg-orange-500 px-3 py-1 text-xs font-medium text-white shadow-[0_10px_18px_rgba(249,115,22,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-600 hover:ring-1 hover:ring-orange-400/70 hover:shadow-[0_12px_22px_rgba(249,115,22,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          >
+            {whatsappLabel}
+          </a>
+        ) : null}
+        {instagramAction}
+      </div>
     </article>
   );
 }
-
-

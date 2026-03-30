@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { getCurrentUser } from "@/lib/auth/auth";
 import {
+  resolveAnnualFeeCents,
   resolveMonthlyFeeCents,
   resolveSetupFeeCents,
   resolveTierByPosition,
@@ -15,6 +16,7 @@ import {
   UsersIcon,
 } from "@/app/empfehler/dashboard/components/icons";
 import { LandingProblemsSection } from "@/app/components/landing-problems-section";
+import { IntroOverlay } from "@/app/components/IntroOverlay";
 import { getQualifyingLiveAdvisorCount } from "@/lib/queries/billing";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -65,12 +67,22 @@ const landingPricingPhases = [
   {
     key: "early",
     title: "Wachstumsphase",
-    text: "Mit wachsender Nutzung und weiterer Etablierung entwickelt sich auch die Preisstufe in die nächste Phase.",
+    text: "Mit den ersten aktiven Beratern wächst die Plattform strukturiert weiter und der Einstieg entwickelt sich in die nächste Phase.",
   },
   {
     key: "standard",
-    title: "Standardphase",
-    text: "Nach der Aufbauphase gilt der reguläre Einstiegspreis für neue Berater.",
+    title: "Etablierungsphase",
+    text: "Rewaro ist klar im Beratungsalltag etabliert. Prozesse sind stabil, die Nutzung steigt und die Preisstufe zieht entsprechend nach.",
+  },
+  {
+    key: "scale",
+    title: "Scale-Phase",
+    text: "In der Scale-Phase wird aus Wachstum echte Skalierung: mehr aktive Berater, mehr Reichweite und höhere operative Tiefe.",
+  },
+  {
+    key: "market",
+    title: "Marktphase",
+    text: "Ab breiter Marktdurchdringung gilt die finale Preisphase für neue Berater mit regulärem Marktniveau.",
   },
  ] as const satisfies ReadonlyArray<{ key: PricingTier; title: string; text: string }>;
 
@@ -111,11 +123,35 @@ function getPhaseMetaFromCount(qualifiedLiveCount: number) {
     };
   }
 
+  if (tier === "standard") {
+    const phaseLimit = 100;
+    const currentCountInPhase = Math.min(Math.max(qualifiedLiveCount - 50, 0), phaseLimit);
+    return {
+      tier,
+      phaseLabel: "Etablierungsphase",
+      phaseLimit,
+      currentCountInPhase,
+      remainingUntilNext: Math.max(phaseLimit - currentCountInPhase, 0),
+    };
+  }
+
+  if (tier === "scale") {
+    const phaseLimit = 350;
+    const currentCountInPhase = Math.min(Math.max(qualifiedLiveCount - 150, 0), phaseLimit);
+    return {
+      tier,
+      phaseLabel: "Scale-Phase",
+      phaseLimit,
+      currentCountInPhase,
+      remainingUntilNext: Math.max(phaseLimit - currentCountInPhase, 0),
+    };
+  }
+
   return {
     tier,
-    phaseLabel: "Standardphase",
+    phaseLabel: "Marktphase",
     phaseLimit: null as number | null,
-    currentCountInPhase: Math.max(qualifiedLiveCount - 50, 0),
+    currentCountInPhase: Math.max(qualifiedLiveCount - 500, 0),
     remainingUntilNext: 0,
   };
 }
@@ -135,7 +171,7 @@ export default async function HomePage() {
   const phaseMeta = getPhaseMetaFromCount(qualifiedLiveAdvisorCount);
   const currentSetupCents = resolveSetupFeeCents(phaseMeta.tier);
   const currentMonthlyCents = resolveMonthlyFeeCents(phaseMeta.tier);
-  const currentAnnualCents = currentMonthlyCents * 12;
+  const currentAnnualCents = resolveAnnualFeeCents(phaseMeta.tier);
   const phaseProgressPercent =
     phaseMeta.phaseLimit && phaseMeta.phaseLimit > 0
       ? Math.min(Math.max((phaseMeta.currentCountInPhase / phaseMeta.phaseLimit) * 100, 0), 100)
@@ -143,6 +179,7 @@ export default async function HomePage() {
 
   return (
     <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-10 px-6 pb-10 pt-6 md:gap-12 md:px-8 md:pb-14">
+      <IntroOverlay />
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_8%_4%,rgba(255,157,66,0.2),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(96,165,250,0.18),transparent_38%),radial-gradient(circle_at_50%_120%,rgba(139,92,246,0.09),transparent_48%),linear-gradient(180deg,#fcfcff_0%,#f6f8ff_45%,#edf2ff_100%)]" />
       <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.09] [background-image:radial-gradient(rgba(20,24,36,0.08)_0.45px,transparent_0.45px)] [background-size:3px_3px]" />
       <div className="hex-honeycomb-bg pointer-events-none fixed inset-0 z-0 opacity-[0.1] [mask-image:linear-gradient(180deg,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0.1)_36%,rgba(0,0,0,0.02)_100%)]" />
@@ -157,7 +194,7 @@ export default async function HomePage() {
         <div className="relative grid grid-cols-[auto_1fr_auto] items-center gap-6">
           <p className="inline-flex items-center">
             <Image
-              src="/Logo/ChatGPT Image 22. März 2026, 09_33_57.transparent.png"
+              src="/Logo/rewaro Logo neu.png"
               alt="Rewaro"
               width={260}
               height={78}
@@ -185,13 +222,13 @@ export default async function HomePage() {
             ) : null}
             <Link
               href="/berater/login"
-              className="rounded-xl border border-orange-300/70 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 shadow-[0_8px_18px_rgba(249,115,22,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100"
+              className="rounded-xl border border-orange-500/85 bg-orange-500 px-3 py-2 text-xs font-semibold text-white shadow-[0_10px_22px_rgba(249,115,22,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-600"
             >
               Berater-Login
             </Link>
             <Link
               href="/empfehler/login"
-              className="rounded-xl border border-orange-300/70 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 shadow-[0_8px_18px_rgba(249,115,22,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-100"
+              className="rounded-xl border border-orange-500/85 bg-orange-500 px-3 py-2 text-xs font-semibold text-white shadow-[0_10px_22px_rgba(249,115,22,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-orange-600"
             >
               Empfehler-Login
             </Link>
@@ -206,18 +243,18 @@ export default async function HomePage() {
 
         <div className="relative grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-center">
           <div className="relative">
-            <span className="inline-flex items-center gap-2 rounded-full border border-orange-300/60 bg-orange-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-500/85 bg-orange-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white shadow-[0_8px_18px_rgba(249,115,22,0.22)]">
               <UsersIcon className="h-3.5 w-3.5" />
               Für Berater
             </span>
             <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-zinc-950 md:text-6xl">
               Empfehlungen endlich strukturiert statt zufällig.
             </h1>
-            <p className="mt-5 max-w-3xl text-base leading-relaxed text-zinc-700 md:text-lg">
-              Rewaro ist die Empfehlungsplattform für Berater: Sie verwalten Empfehlungen,
-              Empfehler, Punkte, Prämien und Einlösungen in einem klaren System. So geht kein
-              wertvoller Kontakt mehr verloren.
-            </p>
+              <p className="mt-5 max-w-3xl text-base leading-relaxed text-zinc-800 md:text-lg">
+                Rewaro ist die Empfehlungsplattform für Berater: Sie verwalten Empfehlungen,
+                Empfehler, Punkte, Prämien und Einlösungen in einem klaren System. So geht kein
+                wertvoller Kontakt mehr verloren.
+              </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
                 href="/berater/signup"
@@ -233,20 +270,20 @@ export default async function HomePage() {
             <div className="pointer-events-none absolute -inset-6 rounded-[2.2rem] bg-[radial-gradient(circle_at_72%_24%,rgba(249,115,22,0.18),transparent_52%),radial-gradient(circle_at_24%_82%,rgba(59,130,246,0.14),transparent_50%)] blur-2xl" />
             <div className="relative rounded-[1.55rem] border border-zinc-200/85 bg-white/94 p-4 shadow-[0_26px_50px_rgba(15,23,42,0.16),inset_0_1px_0_rgba(255,255,255,0.95)] transition-transform duration-500 lg:-rotate-[1.2deg] lg:hover:-rotate-0 lg:hover:-translate-y-1">
               <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-700">
                   Live Produktansicht
                 </p>
                 <div className="mt-3 rounded-xl border border-zinc-200/75 bg-white p-3 shadow-[0_8px_18px_rgba(15,23,42,0.06)]">
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-[11px] text-zinc-500">Verfügbare Punkte</p>
+                      <p className="text-[11px] text-zinc-700">Verfügbare Punkte</p>
                       <p className="text-2xl font-semibold text-zinc-900">1.320</p>
                     </div>
                     <span className="rounded-full border border-orange-300/70 bg-orange-100 px-2.5 py-1 text-[11px] font-semibold text-orange-700">
                       Level Gold
                     </span>
                   </div>
-                  <p className="mt-2 text-[11px] text-zinc-600">Nächstes Ziel: 1.500 Punkte</p>
+                  <p className="mt-2 text-[11px] text-zinc-700">Nächstes Ziel: 1.500 Punkte</p>
                   <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-zinc-200/90">
                     <div className="h-full w-[88%] rounded-full bg-gradient-to-r from-orange-400 to-orange-500 shadow-[0_0_18px_rgba(249,115,22,0.35)]" />
                   </div>
@@ -254,7 +291,7 @@ export default async function HomePage() {
 
                 <div className="mt-3 grid gap-3 sm:grid-cols-[1.12fr_0.88fr]">
                   <div className="rounded-xl border border-zinc-200/75 bg-white p-3 shadow-[0_8px_18px_rgba(15,23,42,0.06)]">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Empfehlungen</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-700">Empfehlungen</p>
                     <div className="mt-2 space-y-2">
                       <div className="flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50/80 px-2.5 py-1.5">
                         <span className="text-xs text-zinc-700">Alex Winter</span>
@@ -268,7 +305,7 @@ export default async function HomePage() {
                   </div>
 
                   <div className="rounded-xl border border-zinc-200/75 bg-white p-3 shadow-[0_8px_18px_rgba(15,23,42,0.06)]">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Rangliste</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-700">Rangliste</p>
                     <div className="mt-2 space-y-1.5 text-xs">
                       <div className="flex items-center justify-between rounded-md bg-orange-50 px-2 py-1">
                         <span className="font-semibold text-orange-700">#1 Nora Vale</span>
@@ -298,11 +335,11 @@ export default async function HomePage() {
               Aktuelle Startphase und Vorteile
             </h2>
             <p className="mt-2 max-w-3xl text-sm text-zinc-700 md:text-base">
-              Der Einstiegspreis folgt einem transparenten Phasenmodell. Im Fokus steht die aktuelle Phase,
+              Der Einstiegspreis bei Rewaro folgt einem transparenten Phasenmodell. Im Fokus steht die aktuelle Phase,
               ergänzt um eine klare Orientierung zur nächsten Preisstufe.
             </p>
           </div>
-          <span className="rounded-full border border-orange-200/80 bg-orange-100/75 px-3 py-1 text-xs font-semibold text-orange-700">
+          <span className="rounded-full border border-orange-500/80 bg-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(249,115,22,0.22)]">
             Für Berater
           </span>
         </div>
@@ -310,11 +347,11 @@ export default async function HomePage() {
         <article className="mt-5 overflow-hidden rounded-2xl border border-orange-200/75 bg-gradient-to-br from-orange-50/90 via-white to-zinc-50 p-5 shadow-[0_18px_34px_rgba(249,115,22,0.12)] md:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-2xl">
-              <span className="inline-flex items-center rounded-full border border-orange-300/70 bg-orange-100/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-orange-700">
+              <span className="inline-flex items-center rounded-full border border-orange-500/85 bg-orange-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-[0_8px_18px_rgba(249,115,22,0.28)]">
                 Aktuelle Phase
               </span>
               <h3 className="mt-3 text-2xl font-semibold text-zinc-900 md:text-[2rem]">
-                Früh einsteigen und Rewaro mitgestalten
+                Früh einsteigen und <span className="text-orange-700">Rewaro</span> mitgestalten
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-zinc-700 md:text-base">
                 In der Startphase profitieren frühe Berater vom vergünstigten Einstieg und helfen mit
@@ -322,11 +359,11 @@ export default async function HomePage() {
               </p>
             </div>
             <div className="rounded-2xl border border-zinc-200/80 bg-white/95 px-4 py-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">{phaseMeta.phaseLabel}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-700">{phaseMeta.phaseLabel}</p>
               <p className="mt-1 text-3xl font-semibold leading-none text-zinc-900">{formatEuro(currentSetupCents)}</p>
               <p className="mt-1 text-sm font-medium text-zinc-700">Einrichtungsgebühr</p>
-              <p className="mt-2 text-sm text-zinc-700">{formatEuro(currentMonthlyCents)} pro Monat</p>
-              <p className="text-sm text-zinc-700">{formatEuro(currentAnnualCents)} pro Jahr</p>
+              <p className="mt-2 text-sm text-zinc-700">Laufend ab {formatEuro(currentMonthlyCents)} / Monat</p>
+              <p className="text-xs text-zinc-600">Jährlich: {formatEuro(currentAnnualCents)} / Jahr</p>
             </div>
           </div>
         </article>
@@ -344,7 +381,7 @@ export default async function HomePage() {
                 <>Aktuell {phaseMeta.phaseLabel}: regulärer Einstiegspreis aktiv.</>
               )}
             </p>
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-700">
               {phaseMeta.phaseLimit
                 ? `${phaseMeta.currentCountInPhase} / ${phaseMeta.phaseLimit} Plätze belegt`
                 : `${qualifiedLiveAdvisorCount} qualifizierte Live-Berater`}
@@ -364,20 +401,24 @@ export default async function HomePage() {
           {landingPricingPhases.map((phase) => {
             const isCurrent = phase.key === phaseMeta.tier;
             const setupCents = resolveSetupFeeCents(phase.key);
-            const monthlyCents = resolveMonthlyFeeCents(phase.key);
-            const annualCents = monthlyCents * 12;
             return (
               <article
                 key={phase.key}
                 className={`rounded-2xl border p-4 transition-colors ${
-                  isCurrent ? "border-orange-200/80 bg-orange-50/70" : "border-zinc-200/85 bg-white/90"
+                  isCurrent
+                    ? "relative border-orange-300/85 bg-gradient-to-br from-orange-50/95 via-orange-50/75 to-white ring-1 ring-orange-200/70 shadow-[0_14px_26px_rgba(249,115,22,0.12)]"
+                    : "border-zinc-200/85 bg-white/90"
                 }`}
               >
+                {isCurrent ? (
+                  <span className="absolute right-3 top-3 rounded-full border border-orange-500/90 bg-orange-500 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-white shadow-[0_10px_18px_rgba(249,115,22,0.3)]">
+                    Aktuell
+                  </span>
+                ) : null}
                 <p className={`text-xs font-semibold uppercase tracking-[0.12em] ${isCurrent ? "text-orange-700" : "text-zinc-500"}`}>
                   {phase.title}
                 </p>
-                <p className="mt-2 text-base font-semibold text-zinc-900">{formatEuro(setupCents)} Einrichtung</p>
-                <p className="text-sm text-zinc-700">{formatEuro(monthlyCents)} monatlich oder {formatEuro(annualCents)} jährlich</p>
+                <p className={`mt-2 text-xl font-semibold ${isCurrent ? "text-zinc-950" : "text-zinc-900"}`}>{formatEuro(setupCents)} Einrichtung</p>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-600">{phase.text}</p>
               </article>
             );
@@ -394,8 +435,10 @@ export default async function HomePage() {
           </div>
           <div className="rounded-2xl border border-orange-200/80 bg-gradient-to-br from-orange-50/90 to-white p-4 shadow-[0_12px_26px_rgba(249,115,22,0.08)]">
             <p className="text-sm font-semibold text-zinc-900">Langfristiges Sparpotenzial</p>
-            <div className="mt-2 rounded-xl border border-orange-200/80 bg-white/85 p-3">
-              <p className="text-lg font-semibold leading-tight text-zinc-900">Bis zu 50 % dauerhaft auf laufende Kosten möglich</p>
+            <div className="mt-2 rounded-xl border border-orange-300/85 bg-white/90 p-3 shadow-[0_10px_20px_rgba(249,115,22,0.12)]">
+              <p className="text-xl font-semibold leading-tight text-zinc-900">
+                Bis zu <span className="text-orange-700">50 % Lifetime-Rabatt</span> auf laufende Kosten möglich
+              </p>
               <p className="mt-1.5 text-sm text-zinc-700">
                 Mit einem starken Empfehlungsnetzwerk können Sie Ihre laufenden Rewaro-Kosten dauerhaft halbieren.
               </p>
@@ -415,7 +458,7 @@ export default async function HomePage() {
 
   <div className="relative flex items-center justify-between gap-3">
     <h2 className="text-2xl font-semibold text-zinc-900 md:text-3xl">
-      Das können Sie mit Rewaro konkret umsetzen
+      Das können Sie mit <span className="text-orange-700">Rewaro</span> konkret umsetzen
     </h2>
   </div>
 
@@ -492,10 +535,13 @@ export default async function HomePage() {
 </section>
       <LandingProblemsSection />
 
-      <section id="nutzen" className="relative z-10 rounded-3xl border border-zinc-200/85 bg-gradient-to-br from-orange-50/85 via-white to-sky-50/75 p-7 shadow-[0_24px_48px_rgba(15,23,42,0.1)] md:p-8 scroll-mt-28">
+      <section id="nutzen" className="relative z-10 overflow-hidden rounded-3xl border border-zinc-200/85 bg-gradient-to-br from-orange-50/88 via-white to-sky-50/72 p-7 shadow-[0_24px_48px_rgba(15,23,42,0.1)] md:p-8 scroll-mt-28">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500/0 via-orange-500/75 to-orange-500/0" />
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-2xl font-semibold text-zinc-900 md:text-3xl">So unterstützt Rewaro Ihr Wachstum</h2>
-          <span className="hidden rounded-full border border-orange-200/80 bg-orange-100/70 px-3 py-1 text-xs font-semibold text-orange-700 md:inline-flex">
+          <h2 className="text-2xl font-semibold text-zinc-900 md:text-3xl">
+            So unterstützt <span className="text-orange-700">Rewaro</span> Ihr Wachstum
+          </h2>
+          <span className="hidden rounded-full border border-orange-500/85 bg-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(249,115,22,0.24)] md:inline-flex">
             Produktnutzen
           </span>
         </div>
@@ -505,15 +551,15 @@ export default async function HomePage() {
             return (
               <article
                 key={benefit.title}
-                className="rounded-2xl border border-zinc-200/80 bg-white/93 p-4 shadow-[0_12px_24px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(249,115,22,0.16)]"
+                className="rounded-2xl border border-zinc-200/80 bg-white/93 p-4 shadow-[0_12px_24px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-300/75 hover:shadow-[0_16px_34px_rgba(249,115,22,0.16)]"
               >
-                <h3 className="inline-flex items-center gap-2 text-base font-semibold text-zinc-900">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-orange-300/55 bg-orange-100 text-orange-700">
+                <h3 className="inline-flex items-center gap-2 text-lg font-semibold text-zinc-900">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-orange-500/80 bg-orange-500 text-white shadow-[0_8px_16px_rgba(249,115,22,0.24)]">
                     <Icon className="h-4 w-4" />
                   </span>
                   {benefit.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-800">{benefit.text}</p>
+                <p className="mt-2 text-base leading-relaxed text-zinc-800">{benefit.text}</p>
               </article>
             );
           })}
@@ -522,15 +568,17 @@ export default async function HomePage() {
 
       <section id="ablauf" className="relative z-10 rounded-3xl border border-zinc-200/85 bg-white/95 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.09)] scroll-mt-28">
         <h2 className="text-2xl font-semibold text-zinc-950">So funktioniert es in 3 Schritten</h2>
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
           {steps.map((step, index) => (
             <article
               key={step.title}
-              className="rounded-xl border border-zinc-200/75 bg-zinc-50/90 p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-300/70"
+              className="rounded-2xl border border-orange-300/70 bg-gradient-to-br from-orange-50/95 to-white p-5 shadow-[0_12px_26px_rgba(249,115,22,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(249,115,22,0.2)] md:p-6"
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-orange-700">Schritt {index + 1}</p>
-              <h3 className="mt-1 text-sm font-semibold text-zinc-900">{step.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-zinc-800">{step.text}</p>
+              <p className="inline-flex rounded-full border border-orange-500/80 bg-orange-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-[0_8px_16px_rgba(249,115,22,0.28)]">
+                Schritt {index + 1}
+              </p>
+              <h3 className="mt-2 text-lg font-semibold text-zinc-900">{step.title}</h3>
+              <p className="mt-2 text-base leading-relaxed text-zinc-800">{step.text}</p>
             </article>
           ))}
         </div>

@@ -10,7 +10,7 @@ import { ReferrerAreaHeader } from "@/app/empfehler/components/referrer-area-hea
 import { DeleteAccountButton } from "@/app/components/delete-account-button";
 import { SparklesIcon, UsersIcon } from "@/app/empfehler/dashboard/components/icons";
 import { PresetAvatarPicker } from "@/app/empfehler/mein-konto/components/preset-avatar-picker";
-import { getReferrerTheme, referrerThemeOptions } from "@/lib/ui/referrer-theme";
+import { getReferrerTheme } from "@/lib/ui/referrer-theme";
 
 type PageProps = {
   searchParams: Promise<{
@@ -22,8 +22,6 @@ type PageProps = {
     password_error?: string;
     avatar_saved?: string;
     avatar_error?: string;
-    theme_saved?: string;
-    theme_error?: string;
   }>;
 };
 
@@ -191,7 +189,7 @@ async function updateReferrerPasswordAction(formData: FormData) {
   }
 
   if (password !== passwordRepeat) {
-    redirectWithQuery({ password_error: "Passwörter stimmen nicht Überein." });
+    redirectWithQuery({ password_error: "Passwörter stimmen nicht überein." });
   }
 
   const { error } = await supabase.auth.updateUser({ password });
@@ -200,31 +198,6 @@ async function updateReferrerPasswordAction(formData: FormData) {
   }
 
   redirectWithQuery({ password_saved: "1" });
-}
-
-async function updateReferrerThemeAction(formData: FormData) {
-  "use server";
-
-  const { supabase, user } = await getCurrentAuthContext();
-  const selectedTheme = String(formData.get("referrer_theme") ?? "").trim();
-  const nextTheme = selectedTheme === "midnight" ? "midnight" : "lila";
-
-  const { error } = await supabase
-    .from("profiles")
-    .upsert(
-      {
-        user_id: user.id,
-        referrer_theme: nextTheme,
-      },
-      { onConflict: "user_id" },
-    );
-
-  if (error) {
-    redirectWithQuery({ theme_error: toErrorMessage(error) });
-  }
-
-  revalidateReferrerArea();
-  redirectWithQuery({ theme_saved: "1" });
 }
 
 async function deleteReferrerAccountAction() {
@@ -322,7 +295,7 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
   const presetImageGroups = await listPresetImagesByGroup();
 
   return (
-    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 p-6">
+    <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-4 p-4 pb-8 md:gap-5 md:p-6">
       <div className={`pointer-events-none fixed inset-0 z-0 ${currentTheme.backgroundClass}`} />
       <div
         className={`${currentTheme.honeycombClass} ${currentTheme.honeycombOpacityClass} pointer-events-none fixed inset-0 z-0`}
@@ -382,13 +355,8 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
           Passwort erfolgreich geändert.
         </p>
       ) : null}
-      {params.theme_saved === "1" ? (
-        <p className="rounded-xl border border-emerald-300/70 bg-emerald-50/95 px-3 py-2 text-sm text-emerald-800">
-          Design-Variante gespeichert.
-        </p>
-      ) : null}
 
-      {[params.error, params.avatar_error, params.email_error, params.password_error, params.theme_error]
+      {[params.error, params.avatar_error, params.email_error, params.password_error]
         .filter(Boolean)
         .map((msg, index) => (
           <p
@@ -451,34 +419,11 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
               </button>
             </form>
 
-            <form action={updateReferrerThemeAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
-              <p className="text-sm font-semibold text-zinc-900">Design-Variante</p>
-              <label className="grid gap-1 text-sm text-zinc-700">
-                Variante auswählen
-                <select
-                  name="referrer_theme"
-                  defaultValue={currentTheme.key}
-                  className="rounded-xl border border-orange-300/55 bg-white px-3 py-2 text-sm text-zinc-900"
-                >
-                  {referrerThemeOptions.map((option) => (
-                    <option key={option.key} value={option.key}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="submit"
-                className="w-fit rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all hover:-translate-y-0.5 hover:bg-orange-100"
-              >
-                Design speichern
-              </button>
-            </form>
           </div>
 
           <div className="space-y-4">
             <form action={updateReferrerEmailAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
-              <p className="text-sm font-semibold text-zinc-900">E-Mail Ändern</p>
+              <p className="text-sm font-semibold text-zinc-900">E-Mail ändern</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Neue E-Mail-Adresse
                 <input
@@ -492,12 +437,12 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
                 type="submit"
                 className="w-fit rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all hover:-translate-y-0.5 hover:bg-orange-100"
               >
-                E-Mail Ändern
+                E-Mail ändern
               </button>
             </form>
 
             <form action={updateReferrerPasswordAction} className="grid gap-2 rounded-xl border border-orange-200/70 bg-orange-50/70 p-3">
-              <p className="text-sm font-semibold text-zinc-900">Passwort Ändern</p>
+              <p className="text-sm font-semibold text-zinc-900">Passwort ändern</p>
               <label className="grid gap-1 text-sm text-zinc-700">
                 Neues Passwort
                 <input
@@ -522,7 +467,7 @@ export default async function ReferrerAccountPage({ searchParams }: PageProps) {
                 type="submit"
                 className="w-fit rounded-xl border border-orange-300/50 bg-white px-3 py-1.5 text-sm font-semibold text-orange-800 transition-all hover:-translate-y-0.5 hover:bg-orange-100"
               >
-                Passwort Ändern
+                Passwort ändern
               </button>
             </form>
 
